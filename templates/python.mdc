@@ -1,0 +1,421 @@
+---
+description: Reglas de seguridad y clean code para proyectos Python con análisis de vulnerabilidades, buenas prácticas PEP 8 y detección de frameworks Django/Flask/FastAPI
+globs: ["**/*.py", "**/requirements*.txt", "**/pyproject.toml", "**/setup.py", "**/Pipfile", "**/*.cfg", "**/tox.ini", "**/pytest.ini"]
+alwaysApply: true
+---
+aiPrompt: |
+  Eres un experto en desarrollo Python con especial conocimiento en Django, Flask y FastAPI. 
+  Tu objetivo es ayudar a identificar, refactorizar y mejorar código Python con un enfoque en:
+  - Vulnerabilidades de seguridad específicas de cada framework
+  - Configuraciones inseguras y exposición de secrets
+  - Inyecciones SQL y XSS en templates
+  - Validación y sanitización de datos de entrada
+  - Configuraciones de debug en producción
+  - Manejo inseguro de sesiones y autenticación
+  - Dependencias con vulnerabilidades conocidas
+  - Hardcoded secrets y credenciales
+  - Configuraciones de CORS y headers de seguridad
+  - Prácticas de logging que puedan exponer información sensible
+  - Clean code y buenas prácticas de desarrollo Python
+
+# Reglas de Clean Code y Buenas Prácticas Python
+cleanCodeRules: |
+  Además de los aspectos de seguridad, aplica estas reglas de clean code específicas para Python:
+
+  ## NOMENCLATURA Y CONVENCIONES PYTHON:
+  - Usa snake_case para variables y funciones: user_name, calculate_total()
+  - Usa PascalCase para clases: UserManager, DatabaseConnection
+  - Usa UPPER_CASE para constantes: MAX_RETRY_ATTEMPTS, API_BASE_URL
+  - Nombres descriptivos y pronunciables: get_user_data vs get_usr_dt
+  - Los nombres de clases deben ser sustantivos: User, PaymentProcessor
+  - Los nombres de métodos deben ser verbos: calculate_total, validate_input
+  - Usa nombres que revelen intención: is_user_active vs flag, user_count vs num
+  - Prefijos para métodos privados: _internal_method, __private_method
+
+  ## FUNCIONES Y MÉTODOS PYTHON:
+  - Mantén las funciones pequeñas (máximo 20-30 líneas)
+  - Una función debe hacer UNA SOLA COSA (Single Responsibility)
+  - Máximo 3-4 parámetros por función (usa **kwargs si necesitas más)
+  - Usa type hints para claridad: def process_user(user_id: int) -> User:
+  - Usa docstrings para funciones públicas siguiendo PEP 257
+  - Prefiere funciones puras cuando sea posible
+  - Evita flags booleanos como parámetros (mejor crear dos funciones específicas)
+
+  ## ESTRUCTURA Y ORGANIZACIÓN PYTHON:
+  - Usa 4 espacios para indentación (PEP 8)
+  - Máximo 79 caracteres por línea (PEP 8)
+  - Ordena imports: stdlib, third-party, local (separados por línea en blanco)
+  - Usa import absolutos cuando sea posible
+  - Agrupa código relacionado y separa conceptos con líneas en blanco
+  - Mantén archivos de tamaño razonable (máximo 300-500 líneas)
+  - Usa __init__.py apropiadamente para paquetes
+
+  ## COMENTARIOS Y DOCUMENTACIÓN PYTHON:
+  - Escribe código auto-documentado que no necesite comentarios obvios
+  - Usa docstrings para módulos, clases y funciones públicas
+  - Sigue el formato de docstring (Google, Sphinx, o NumPy style)
+  - Usa comentarios para explicar el "por qué", no el "qué"
+  - Mantén los comentarios actualizados con el código
+  - Usa # TODO, # FIXME, # HACK para marcar código temporal
+
+  ## MANEJO DE ERRORES PYTHON:
+  - Usa excepciones específicas, no Exception genérica
+  - Falla rápido con assert para condiciones que nunca deberían ocurrir
+  - Usa try-except específico, evita bare except:
+  - Proporciona mensajes de error útiles y accionables
+  - Usa logging apropiado: logger.debug, logger.info, logger.warning, logger.error
+  - Implementa context managers para recursos (with statements)
+
+  ## PRINCIPIOS PYTHÓNICOS:
+  - Sigue el Zen of Python: import this
+  - Usa list/dict comprehensions cuando mejoren la legibilidad
+  - Prefiere enumerate() sobre range(len())
+  - Usa zip() para iterar múltiples secuencias
+  - Aprovecha duck typing apropiadamente
+  - Usa generators para secuencias grandes
+  - Prefiere pathlib sobre os.path para rutas de archivos
+
+  ## TESTING PYTHON:
+  - Usa pytest como framework principal
+  - Nombres de test descriptivos: test_should_return_error_when_user_not_found
+  - Sigue el patrón Arrange-Act-Assert (AAA)
+  - Usa fixtures para setup común
+  - Mock dependencias externas apropiadamente
+  - Mantén tests independientes entre sí
+  - Usa parametrize para múltiples casos de test
+
+# Rutas a ignorar durante el análisis.
+ignorePaths:
+  - __pycache__/
+  - "*.pyc"
+  - .venv/
+  - venv/
+  - env/
+  - .env/
+  - .pytest_cache/
+  - .tox/
+  - build/
+  - dist/
+  - "*.egg-info/"
+  - .coverage
+  - htmlcov/
+  - .mypy_cache/
+  - .idea/
+  - .vscode/
+  - node_modules/
+  - "*.log"
+
+# Ficheros específicos a buscar y analizar.
+find:
+  - label: "requirements.txt"
+    description: "VULNERABILIDADES: Analizar dependencias. Buscar versiones con CVEs conocidos, especialmente Django, Flask, requests, urllib3."
+  - label: "pyproject.toml"
+    description: "POETRY: Configuración Poetry. Verificar dependencias y versiones de paquetes de seguridad."
+  - label: "Pipfile"
+    description: "PIPENV: Configuración Pipenv. Revisar dependencias y configuraciones de desarrollo vs producción."
+  - label: "Pipfile.lock"
+    description: "PIPENV: Lock file. Verificar integridad y versiones exactas de dependencias."
+  - label: "setup.py"
+    description: "PACKAGING: Configuración de paquete. Verificar dependencias y metadata de seguridad."
+  - label: "settings.py"
+    description: "CRÍTICO DJANGO: Configuración principal. Buscar DEBUG=True, SECRET_KEY hardcodeada, ALLOWED_HOSTS inseguro."
+  - label: "settings/**/*.py"
+    description: "DJANGO: Configuraciones por entorno. Verificar separación segura de configuraciones."
+  - label: "config.py"
+    description: "FLASK: Configuración aplicación. Verificar configuraciones de seguridad y secrets."
+  - label: "app.py"
+    description: "FLASK/FASTAPI: Aplicación principal. Verificar configuración de CORS, middleware de seguridad."
+  - label: "main.py"
+    description: "FASTAPI: Punto de entrada. Verificar configuración de aplicación y dependencias seguras."
+  - label: "wsgi.py"
+    description: "WSGI: Configuración servidor. Verificar configuración de producción segura."
+  - label: "asgi.py"
+    description: "ASGI: Configuración servidor async. Verificar configuración async segura."
+  - label: "manage.py"
+    description: "DJANGO: Script de gestión. Verificar no exposición en producción."
+  - label: "models.py"
+    description: "CRÍTICO: Modelos de datos. Verificar validaciones, campos sensibles y queries seguras."
+  - label: "models/**/*.py"
+    description: "MODELOS: Definiciones de modelos. Buscar validaciones y sanitización de datos."
+  - label: "views.py"
+    description: "CRÍTICO: Vistas/Controladores. Verificar autenticación, autorización y validación de entrada."
+  - label: "views/**/*.py"
+    description: "VISTAS: Controladores. Buscar vulnerabilidades XSS, CSRF y autorización."
+  - label: "serializers.py"
+    description: "API: Serializadores. Verificar validación de datos y campos expuestos."
+  - label: "forms.py"
+    description: "FORMS: Formularios. Verificar validación y sanitización de datos de entrada."
+  - label: "urls.py"
+    description: "URLS: Configuración de rutas. Verificar patrones seguros y autorización."
+  - label: "admin.py"
+    description: "CRÍTICO DJANGO: Interfaz admin. Verificar permisos y campos expuestos en admin."
+  - label: "*.html"
+    description: "TEMPLATES: Plantillas HTML. Buscar XSS, datos sensibles expuestos y CSRF tokens."
+  - label: "migrations/**/*.py"
+    description: "DJANGO: Migraciones de BD. Verificar no inclusión de datos sensibles."
+  - label: ".env"
+    description: "CRÍTICO: Variables de entorno. Verificar que no esté versionado y contenga secrets seguros."
+  - label: ".env.example"
+    description: "ENV: Ejemplo de variables. Verificar que no contenga valores reales."
+  - label: "docker-compose.yml"
+    description: "DOCKER: Orquestación. Verificar configuración de redes, volúmenes y secrets."
+  - label: "Dockerfile"
+    description: "DOCKER: Configuración contenedor. Verificar usuario no-root, secrets seguros."
+  - label: "pytest.ini"
+    description: "TESTING: Configuración pytest. Verificar no exposición de credenciales de test."
+  - label: "conftest.py"
+    description: "TESTING: Configuración fixtures. Verificar fixtures de test seguros."
+  - label: "tox.ini"
+    description: "TESTING: Configuración tox. Verificar comandos de test seguros."
+
+# Símbolos o patrones clave a identificar en el código.
+symbols:
+  # === CLEAN CODE Y BUENAS PRÁCTICAS ===
+  
+  # Nomenclatura y convenciones
+  - label: "def [a-z]+[A-Z]"
+    description: "CONVENCIÓN: Función con camelCase. Usar snake_case en Python: my_function()"
+  - label: "class [a-z]"
+    description: "CONVENCIÓN: Clase con minúscula inicial. Usar PascalCase: MyClass"
+  - label: "def [a-zA-Z]{1,2}\\("
+    description: "NOMENCLATURA: Nombre de función muy corto. Usar nombres descriptivos."
+  - label: "def get\\(\\)"
+    description: "NOMENCLATURA: Método get genérico. Especificar qué obtiene: get_user(), get_data()"
+  
+  # Funciones y métodos
+  - label: "def .+\\([^)]{50,}"
+    description: "COMPLEJIDAD: Lista de parámetros muy larga. Considerar usar **kwargs o dataclass."
+  - label: "def .+\\(.*flag.*\\)"
+    description: "DISEÑO: Parámetro flag booleano. Considerar crear dos funciones específicas."
+  
+  # Estructura y organización
+  - label: "^\\t"
+    description: "CONVENCIÓN: Uso de tabs. Python requiere 4 espacios para indentación (PEP 8)."
+  - label: ".{80,}"
+    description: "CONVENCIÓN: Línea muy larga (>79 chars). Dividir según PEP 8."
+  - label: "import \\*"
+    description: "CONVENCIÓN: Import con asterisco. Usar imports específicos para claridad."
+  
+  # Comentarios y documentación
+  - label: "# incrementa"
+    description: "COMENTARIO OBVIO: Comentario que describe código obvio. Remover o mejorar."
+  - label: "def [^_].+\\):\\s*$"
+    description: "DOCUMENTACIÓN: Función pública sin docstring. Agregar docstring descriptivo."
+  - label: "class [A-Z].+:\\s*$"
+    description: "DOCUMENTACIÓN: Clase sin docstring. Agregar documentación de propósito."
+  
+  # Manejo de errores
+  - label: "except:"
+    description: "MAL MANEJO: Bare except. Usar excepciones específicas: except ValueError:"
+  - label: "pass\\s*#.*TODO"
+    description: "DEUDA TÉCNICA: Código TODO sin implementar. Completar o crear issue."
+  
+  # Patrones Pythónicos
+  - label: "range\\(len\\("
+    description: "PYTHÓNICO: Usar enumerate() en lugar de range(len()): for i, item in enumerate(items)"
+  - label: "if .* in \\[.*\\]:"
+    description: "PERFORMANCE: Membership test en lista. Usar set para O(1): if item in {set}"
+  
+  # Marcadores de deuda técnica
+  - label: "TODO:"
+    description: "DEUDA TÉCNICA: Código temporal que necesita ser completado o mejorado."
+  - label: "FIXME:"
+    description: "CRÍTICO: Código que funciona pero tiene problemas conocidos que deben arreglarse."
+  - label: "HACK:"
+    description: "DEUDA TÉCNICA: Solución temporal no elegante que necesita refactoring."
+  - label: "XXX:"
+    description: "ATENCIÓN: Código problemático o peligroso que necesita revisión urgente."
+  - label: "DEPRECATED:"
+    description: "OBSOLETO: Código que será removido en futuras versiones."
+  
+  # === SEGURIDAD CRÍTICA ===
+  
+  - label: "DEBUG = True"
+    description: "CRÍTICO: Debug habilitado. NUNCA usar en producción - expone información sensible."
+  - label: "SECRET_KEY = "
+    description: "CRÍTICO: Clave secreta hardcodeada. Usar variables de entorno seguras."
+  - label: "ALLOWED_HOSTS = []"
+    description: "CRÍTICO DJANGO: Hosts permitidos vacío. Configurar hosts específicos en producción."
+  - label: "CORS_ALLOW_ALL_ORIGINS = True"
+    description: "CRÍTICO: CORS permisivo. Restringir orígenes permitidos."
+  - label: "CORS_ALLOW_CREDENTIALS = True"
+    description: "SEGURIDAD: CORS con credenciales. Revisar configuración de orígenes."
+  - label: "app.run(debug=True)"
+    description: "CRÍTICO FLASK: Debug en ejecución. Remover en producción."
+  - label: "app.debug = True"
+    description: "CRÍTICO FLASK: Debug configurado. Verificar deshabilitado en producción."
+  - label: "@app.route"
+    description: "FLASK: Rutas de aplicación. Verificar autenticación y validación de parámetros."
+  - label: "@api.route"
+    description: "API: Endpoints API. Verificar autorización y validación de entrada."
+  - label: "request.form"
+    description: "CRÍTICO: Datos de formulario. Verificar validación y sanitización obligatoria."
+  - label: "request.args"
+    description: "CRÍTICO: Parámetros URL. Verificar validación contra inyecciones."
+  - label: "request.json"
+    description: "API: Datos JSON. Verificar validación de estructura y contenido."
+  - label: "request.files"
+    description: "CRÍTICO: Subida archivos. Verificar validación tipo, tamaño y contenido."
+  - label: "session["
+    description: "SESIONES: Manejo de sesión. Verificar configuración segura de cookies."
+  - label: "render_template"
+    description: "TEMPLATES: Renderizado. Verificar escapado automático y contexto seguro."
+  - label: "render_template_string"
+    description: "CRÍTICO: Template dinámico. ALTO RIESGO de inyección de template."
+  - label: "make_response"
+    description: "HTTP: Respuestas. Verificar headers de seguridad (CSP, HSTS, X-Frame-Options)."
+  - label: "redirect("
+    description: "SEGURIDAD: Redirecciones. Verificar validación de URL destino."
+  - label: "HttpResponse"
+    description: "DJANGO: Respuestas HTTP. Verificar headers de seguridad."
+  - label: "JsonResponse"
+    description: "DJANGO: Respuestas JSON. Verificar no exposición de información sensible."
+  - label: "raw("
+    description: "CRÍTICO DJANGO: Query SQL raw. ALTO RIESGO de SQL Injection."
+  - label: "extra("
+    description: "DJANGO: Query extra. Verificar uso seguro de SQL adicional."
+  - label: "cursor.execute"
+    description: "CRÍTICO: Ejecución SQL directa. Usar parámetros preparados obligatorio."
+  - label: "format("
+    description: "INYECCIÓN: Formateo strings. Evitar en queries SQL o comandos."
+  - label: "% "
+    description: "INYECCIÓN: Interpolación strings. Peligroso en contextos SQL o comandos."
+  - label: "f'"
+    description: "INYECCIÓN: F-strings. Evitar en queries SQL o comandos del sistema."
+  - label: "eval("
+    description: "CRÍTICO: Evaluación código. NUNCA usar con entrada de usuario."
+  - label: "exec("
+    description: "CRÍTICO: Ejecución código. NUNCA usar con entrada de usuario."
+  - label: "compile("
+    description: "CRÍTICO: Compilación código. Verificar entrada confiable únicamente."
+  - label: "subprocess.call"
+    description: "CRÍTICO: Ejecución comandos. ALTO RIESGO de Command Injection."
+  - label: "subprocess.run"
+    description: "CRÍTICO: Ejecución procesos. Verificar validación estricta de comandos."
+  - label: "os.system"
+    description: "CRÍTICO: Comandos sistema. ALTO RIESGO de Command Injection."
+  - label: "os.popen"
+    description: "CRÍTICO: Pipes sistema. Verificar validación de comandos."
+  - label: "shell=True"
+    description: "CRÍTICO: Shell habilitado. ALTO RIESGO - usar shell=False siempre."
+  - label: "pickle.loads"
+    description: "CRÍTICO: Deserialización pickle. NUNCA con datos no confiables."
+  - label: "pickle.load"
+    description: "CRÍTICO: Carga pickle. Verificar origen confiable de datos."
+  - label: "yaml.load"
+    description: "CRÍTICO: Carga YAML insegura. Usar yaml.safe_load."
+  - label: "json.loads"
+    description: "DESERIALIZACIÓN: JSON. Verificar validación de estructura."
+  - label: "input("
+    description: "ENTRADA: Input usuario. Verificar validación y sanitización."
+  - label: "open("
+    description: "ARCHIVOS: Apertura archivos. Verificar validación de rutas."
+  - label: "__import__"
+    description: "CRÍTICO: Import dinámico. Verificar validación estricta de módulos."
+  - label: "importlib.import_module"
+    description: "IMPORTS: Import dinámico. Verificar validación de nombres de módulo."
+  - label: "getattr("
+    description: "REFLEXIÓN: Acceso atributos. Verificar validación de nombres."
+  - label: "setattr("
+    description: "REFLEXIÓN: Asignación atributos. Verificar validación y autorización."
+  - label: "hasattr("
+    description: "REFLEXIÓN: Verificación atributos. Usar con validación."
+  - label: "globals("
+    description: "CRÍTICO: Acceso globales. Evitar exposición de variables sensibles."
+  - label: "locals("
+    description: "CRÍTICO: Acceso locales. Evitar exposición en respuestas."
+  - label: "vars("
+    description: "REFLEXIÓN: Variables objeto. Evitar exposición de datos internos."
+  - label: "dir("
+    description: "REFLEXIÓN: Introspección. Evitar exposición de métodos internos."
+  - label: "print("
+    description: "LOGGING: Salida debug. Verificar no exposición de datos sensibles."
+  - label: "logging.debug"
+    description: "LOGGING: Debug logs. Verificar no inclusión de datos sensibles."
+  - label: "logger.debug"
+    description: "LOGGING: Logger debug. Revisar información expuesta en logs."
+  - label: "md5("
+    description: "VULNERABLE: Hash MD5. Algoritmo comprometido, usar SHA-256 o superior."
+  - label: "hashlib.md5"
+    description: "VULNERABLE: MD5. Algoritmo roto, usar hashlib.sha256 o superior."
+  - label: "hashlib.sha1"
+    description: "DÉBIL: SHA1. Algoritmo débil, usar SHA-256 o superior."
+  - label: "random.random"
+    description: "DÉBIL: Random inseguro. Usar secrets.SystemRandom para seguridad."
+  - label: "random.choice"
+    description: "DÉBIL: Choice inseguro. Usar secrets.choice para tokens/passwords."
+  - label: "base64.b64encode"
+    description: "CODIFICACIÓN: Base64. NO es cifrado, solo codificación."
+  - label: "base64.b64decode"
+    description: "DECODIFICACIÓN: Base64. Verificar validación de entrada."
+  - label: "urllib.request.urlopen"
+    description: "HTTP: Requests. Verificar validación de URL y certificados SSL."
+  - label: "requests.get"
+    description: "HTTP: GET requests. Verificar validación de URL y parámetros."
+  - label: "requests.post"
+    description: "HTTP: POST requests. Verificar validación de datos y URL."
+  - label: "verify=False"
+    description: "CRÍTICO: SSL deshabilitado. NUNCA deshabilitar verificación SSL."
+  - label: "ssl._create_unverified_context"
+    description: "CRÍTICO: SSL sin verificar. Usar contextos SSL seguros."
+  - label: "CSRF_COOKIE_SECURE = False"
+    description: "CRÍTICO DJANGO: Cookie CSRF insegura. Habilitar en producción."
+  - label: "SESSION_COOKIE_SECURE = False"
+    description: "CRÍTICO DJANGO: Cookie sesión insegura. Habilitar HTTPS."
+  - label: "SECURE_SSL_REDIRECT = False"
+    description: "SEGURIDAD DJANGO: SSL redirect deshabilitado. Habilitar en producción."
+  - label: "@csrf_exempt"
+    description: "CRÍTICO DJANGO: CSRF deshabilitado. Usar solo si es absolutamente necesario."
+  - label: "safe=False"
+    description: "DJANGO: Serialización insegura. Verificar contexto de uso."
+  - label: "escape("
+    description: "XSS: Escapado manual. Verificar que el contexto lo requiera."
+  - label: "mark_safe"
+    description: "CRÍTICO DJANGO: Contenido marcado seguro. Verificar sanitización previa."
+  - label: "|safe"
+    description: "CRÍTICO DJANGO: Filtro safe en template. Verificar contenido sanitizado."
+  - label: "autoescape off"
+    description: "CRÍTICO DJANGO: Autoescapado deshabilitado. ALTO RIESGO de XSS."
+  - label: "user.is_authenticated"
+    description: "DJANGO: Verificación autenticación. Verificar uso correcto."
+  - label: "@login_required"
+    description: "DJANGO: Decorador login. Verificar cobertura completa de vistas."
+  - label: "@permission_required"
+    description: "DJANGO: Permisos requeridos. Verificar permisos apropiados."
+  - label: "User.objects.create_user"
+    description: "DJANGO: Creación usuario. Verificar validación de passwords."
+  - label: "authenticate("
+    description: "DJANGO: Autenticación. Verificar manejo seguro de credenciales."
+  - label: "login("
+    description: "DJANGO: Login usuario. Verificar logging y auditoría."
+  - label: "logout("
+    description: "DJANGO: Logout usuario. Verificar limpieza completa de sesión."
+  - label: "FastAPI("
+    description: "FASTAPI: Aplicación. Verificar configuración de CORS y middleware."
+  - label: "@app.get"
+    description: "FASTAPI: Endpoint GET. Verificar validación de parámetros query."
+  - label: "@app.post"
+    description: "CRÍTICO FASTAPI: Endpoint POST. Verificar validación de body y autenticación."
+  - label: "@app.put"
+    description: "FASTAPI: Endpoint PUT. Verificar autorización y validación."
+  - label: "@app.delete"
+    description: "CRÍTICO FASTAPI: Endpoint DELETE. Verificar autorización estricta."
+  - label: "Depends("
+    description: "FASTAPI: Inyección dependencias. Verificar validación de dependencias."
+  - label: "HTTPException"
+    description: "FASTAPI: Excepciones HTTP. Verificar no exposición de información interna."
+  - label: "Request"
+    description: "FASTAPI: Objeto request. Verificar validación de datos de entrada."
+  - label: "Path("
+    description: "FASTAPI: Parámetros path. Verificar validación y tipos."
+  - label: "Query("
+    description: "FASTAPI: Parámetros query. Verificar validación y límites."
+  - label: "Body("
+    description: "FASTAPI: Cuerpo request. Verificar validación de esquema."
+  - label: "Form("
+    description: "CRÍTICO FASTAPI: Datos formulario. Verificar validación y sanitización."
+  - label: "File("
+    description: "CRÍTICO FASTAPI: Subida archivos. Verificar validación tipo y tamaño."
+  - label: "UploadFile"
+    description: "CRÍTICO FASTAPI: Archivos subidos. Verificar validación completa."
+

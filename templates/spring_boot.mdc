@@ -1,0 +1,252 @@
+---
+description: Reglas de seguridad y clean code para proyectos Spring Boot con análisis de vulnerabilidades, buenas prácticas Java y arquitectura en capas
+globs: ["**/*.java", "**/pom.xml", "**/application*.yml", "**/application*.properties", "**/*.gradle", "**/build.gradle*"]
+alwaysApply: true
+---
+
+# Este es el prompt que se le dará a la IA.
+aiPrompt: |
+  Eres un experto en Spring Boot con enfoque en SEGURIDAD y CLEAN CODE. Analiza el código para identificar controladores, servicios, repositorios y entidades. Presta ESPECIAL ATENCIÓN a:
+  - Vulnerabilidades de seguridad (SQL Injection, XSS, CSRF, SSRF)
+  - Configuraciones inseguras (propiedades expuestas, actuators sin protección)
+  - Manejo inseguro de autenticación y autorización
+  - Logs que puedan exponer información sensible
+  - Dependencias con vulnerabilidades conocidas
+  - Hardcoded secrets y credenciales
+  - Validación y sanitización de datos de entrada
+  - Configuración de CORS y headers de seguridad
+  - Clean code y buenas prácticas de desarrollo Java/Spring Boot
+
+# Reglas de Clean Code y Buenas Prácticas Spring Boot/Java
+cleanCodeRules: |
+  Además de los aspectos de seguridad, aplica estas reglas de clean code específicas para Spring Boot:
+
+  ## NOMENCLATURA Y CONVENCIONES JAVA:
+  - Usa PascalCase para clases: UserService, PaymentController
+  - Usa camelCase para métodos y variables: calculateTotal(), userName
+  - Usa UPPER_CASE para constantes: MAX_RETRY_ATTEMPTS, API_BASE_URL
+  - Nombres descriptivos: getUserById() vs get(), UserNotFoundException vs Exception
+  - Interfaces sin prefijo I: UserService (no IUserService)
+  - Packages en minúsculas: com.company.module.service
+  - Clases de test terminan en Test: UserServiceTest
+
+  ## ARQUITECTURA SPRING BOOT:
+  - Separa responsabilidades: Controller -> Service -> Repository
+  - Controllers solo manejan HTTP, no lógica de negocio
+  - Services contienen lógica de negocio, son transaccionales
+  - Repositories solo acceso a datos, queries específicas
+  - DTOs para transferir datos entre capas
+  - Mappers para conversión Entity <-> DTO
+  - Usa @Transactional apropiadamente (solo en services)
+
+  ## CONTROLADORES REST:
+  - Un endpoint por método, responsabilidad única
+  - Usa ResponseEntity para control completo de respuesta
+  - Validación con @Valid en request bodies
+  - Manejo de errores con @ControllerAdvice
+  - Documentación con OpenAPI/Swagger
+  - Versionado de APIs consistente (/api/v1/)
+
+  ## SERVICIOS Y LÓGICA DE NEGOCIO:
+  - Métodos pequeños con una responsabilidad
+  - Usa Optional para valores que pueden ser null
+  - Manejo de excepciones específicas del dominio
+  - Logging apropiado en niveles correctos
+  - Inyección de dependencias por constructor
+  - Interfaces para servicios complejos
+
+  ## PERSISTENCIA Y DATOS:
+  - Usa JPA Repositories con métodos descriptivos
+  - Queries nombradas para consultas complejas
+  - Paginación para listas grandes
+  - Lazy loading apropiado en entidades
+  - Validaciones Bean Validation en entidades
+  - Auditoría con @CreatedDate, @LastModifiedDate
+
+  ## TESTING SPRING BOOT:
+  - @SpringBootTest para tests de integración
+  - @WebMvcTest para tests de controllers
+  - @DataJpaTest para tests de repositories
+  - MockMvc para testing de endpoints
+  - TestContainers para tests con BD real
+  - Profiles separados para testing
+
+# Rutas a ignorar durante el análisis.
+ignorePaths:
+  - .mvn/
+  - .gradle/
+  - build/
+  - target/
+  - .idea/
+  - "*.iml"
+  - .vscode/
+  - logs/
+  - "*.log"
+
+# Ficheros específicos a buscar y analizar.
+find:
+  - label: "application.properties"
+    description: "CRÍTICO: Revisa configuraciones de seguridad, credenciales hardcodeadas, actuators expuestos, y configuraciones de base de datos."
+  - label: "application.yml"
+    description: "CRÍTICO: Configuración YAML. Busca secrets en texto plano, configuraciones de seguridad débiles."
+  - label: "application-{profile}.properties"
+    description: "SEGURIDAD: Configuraciones por perfil. Verifica que prod no exponga endpoints de debug."
+  - label: "pom.xml"
+    description: "VULNERABILIDADES: Analiza dependencias. Busca versiones con CVEs conocidos, especialmente Spring, Jackson, Log4j."
+  - label: "build.gradle"
+    description: "VULNERABILIDADES: Revisa dependencias de Gradle. Verifica versiones de librerías de seguridad."
+  - label: "SecurityConfig.java"
+    description: "CRÍTICO: Configuración de seguridad. Busca CSRF deshabilitado, CORS permisivo, autenticación débil."
+  - label: "WebConfig.java"
+    description: "SEGURIDAD: Configuración web. Revisa interceptores de seguridad y headers de protección."
+  - label: "DatabaseConfig.java"
+    description: "SEGURIDAD: Configuración DB. Verifica conexiones seguras, pool de conexiones y credenciales."
+  - label: "Dockerfile"
+    description: "SEGURIDAD: Revisa usuario root, puertos expuestos, secrets en capas, imágenes base vulnerables."
+  - label: "docker-compose.yml"
+    description: "SEGURIDAD: Verifica redes, volúmenes, variables de entorno con secrets."
+  - label: "logback-spring.xml"
+    description: "PRIVACIDAD: Configuración de logging. Busca logs que expongan datos sensibles."
+  - label: "bootstrap.properties"
+    description: "SEGURIDAD: Configuración Bootstrap. Revisa endpoints de configuración expuestos."
+  - label: "schema.sql"
+    description: "SEGURIDAD: Scripts DDL. Busca usuarios por defecto, privilegios excesivos."
+  - label: "data.sql"
+    description: "CRÍTICO: Datos de inicialización. Busca credenciales por defecto, datos sensibles."
+
+# Símbolos o anotaciones clave a identificar en el código.
+symbols:
+  # === CLEAN CODE Y BUENAS PRÁCTICAS SPRING BOOT ===
+  
+  # Nomenclatura y convenciones
+  - label: "class [a-z].*Controller"
+    description: "CONVENCIÓN: Controller con minúscula inicial. Usar PascalCase: UserController"
+  - label: "public \\w{1,2}\\("
+    description: "NOMENCLATURA: Método con nombre muy corto. Usar nombres descriptivos"
+  - label: "Exception\\s+\\w+Exception"
+    description: "NOMENCLATURA: Excepción genérica. Usar excepciones específicas del dominio"
+  
+  # Arquitectura y responsabilidades
+  - label: "@Controller.*@Transactional"
+    description: "ARQUITECTURA: Transacción en Controller. Mover lógica transaccional al Service"
+  - label: "@Repository.*@Transactional"
+    description: "ARQUITECTURA: Transacción en Repository. Las transacciones van en Services"
+  - label: "@Autowired.*field"
+    description: "INYECCIÓN: Field injection. Usar constructor injection para mejor testabilidad"
+  
+  # REST y controladores
+  - label: "@RequestMapping.*method.*=.*\\{.*,.*\\}"
+    description: "REST: Múltiples métodos HTTP. Usar anotaciones específicas @GetMapping, @PostMapping"
+  - label: "return.*new.*ResponseEntity"
+    description: "REST: ResponseEntity manual. Usar métodos estáticos: ResponseEntity.ok()"
+  - label: "@RequestParam.*required.*=.*false"
+    description: "VALIDACIÓN: Parámetro opcional sin validación. Usar Optional o validar apropiadamente"
+  
+  # Manejo de datos
+  - label: "findAll\\(\\).*size\\(\\)"
+    description: "PERFORMANCE: findAll() sin paginación. Usar Pageable para listas grandes"
+  - label: "Optional.*get\\(\\)"
+    description: "SEGURIDAD: Optional.get() directo. Usar orElse(), orElseThrow(), ifPresent()"
+  - label: "List<.*>.*=.*new.*ArrayList<.*>\\(\\)"
+    description: "INICIALIZACIÓN: Lista mutable innecesaria. Considerar List.of() o Collections inmutables"
+  
+  # Marcadores de deuda técnica
+  - label: "TODO:"
+    description: "DEUDA TÉCNICA: Código temporal que necesita ser completado o mejorado."
+  - label: "FIXME:"
+    description: "CRÍTICO: Código que funciona pero tiene problemas conocidos que deben arreglarse."
+  - label: "HACK:"
+    description: "DEUDA TÉCNICA: Solución temporal no elegante que necesita refactoring."
+  - label: "XXX:"
+    description: "ATENCIÓN: Código problemático o peligroso que necesita revisión urgente."
+  - label: "DEPRECATED:"
+    description: "OBSOLETO: Código que será removido en futuras versiones."
+  
+  # === ANOTACIONES SPRING BOOT ===
+  
+  - label: "@SpringBootApplication"
+    description: "Clase principal de la aplicación Spring Boot."
+  - label: "@RestController"
+    description: "SEGURIDAD: API endpoints. Verifica validación de entrada y autorización."
+  - label: "@Controller"
+    description: "SEGURIDAD: Controladores MVC. Busca vulnerabilidades XSS y CSRF."
+  - label: "@Service"
+    description: "Clases que contienen la lógica de negocio."
+  - label: "@Repository"
+    description: "CRÍTICO: Acceso a datos. Busca queries vulnerables a SQL Injection."
+  - label: "@Entity"
+    description: "Entidades JPA. Verifica validaciones y campos sensibles."
+  - label: "@Configuration"
+    description: "SEGURIDAD: Configuraciones. Busca beans de seguridad mal configurados."
+  - label: "@ConfigurationProperties"
+    description: "SECRETOS: Propiedades. Busca credenciales y secrets hardcodeados."
+  - label: "@Autowired"
+    description: "Inyección de dependencias automática."
+  - label: "@Component"
+    description: "Componentes genéricos de Spring."
+  - label: "@RequestMapping"
+    description: "SEGURIDAD: Mapeo HTTP. Verifica métodos permitidos y autorización."
+  - label: "@GetMapping"
+    description: "SEGURIDAD: Endpoints GET. Verifica que no modifiquen estado."
+  - label: "@PostMapping"
+    description: "CRÍTICO: Endpoints POST. Busca protección CSRF y validación."
+  - label: "@PutMapping"
+    description: "SEGURIDAD: Endpoints PUT. Verifica autorización y validación."
+  - label: "@DeleteMapping"
+    description: "CRÍTICO: Endpoints DELETE. Busca autorización estricta."
+  - label: "@PathVariable"
+    description: "INYECCIÓN: Variables de URL. Busca validación contra path traversal."
+  - label: "@RequestParam"
+    description: "INYECCIÓN: Parámetros. Busca validación y sanitización."
+  - label: "@RequestBody"
+    description: "CRÍTICO: Deserialización. Busca validación contra ataques de deserialización."
+  - label: "@Valid"
+    description: "SEGURIDAD: Validación de datos. Verifica que esté presente en todos los endpoints."
+  - label: "@Transactional"
+    description: "Manejo de transacciones de base de datos."
+  - label: "@EnableJpaRepositories"
+    description: "Habilitación de repositorios JPA."
+  - label: "@EnableWebSecurity"
+    description: "CRÍTICO: Configuración de seguridad web. Verifica configuración completa."
+  - label: "@PreAuthorize"
+    description: "AUTORIZACIÓN: Control de acceso. Verifica expresiones SpEL seguras."
+  - label: "@Secured"
+    description: "AUTORIZACIÓN: Control basado en roles. Verifica roles apropiados."
+  - label: "@Test"
+    description: "Métodos de prueba unitaria."
+  - label: "@SpringBootTest"
+    description: "Pruebas de integración de Spring Boot."
+  - label: "@WebMvcTest"
+    description: "SEGURIDAD: Pruebas de controladores. Verifica tests de seguridad."
+  - label: "@DataJpaTest"
+    description: "Pruebas específicas para repositorios JPA."
+  - label: "@MockBean"
+    description: "Mock de beans para pruebas."
+  - label: "@TestConfiguration"
+    description: "Configuración específica para pruebas."
+  - label: "Query"
+    description: "CRÍTICO: Queries JPA/SQL. Buscar SQL Injection y queries inseguras."
+  - label: "createQuery"
+    description: "CRÍTICO: Queries dinámicas. Verificar uso de parámetros preparados."
+  - label: "setProperty"
+    description: "CONFIGURACIÓN: Propiedades dinámicas. Buscar configuraciones inseguras."
+  - label: "getenv"
+    description: "SECRETOS: Variables de entorno. Verificar manejo seguro de secrets."
+  - label: "System.getProperty"
+    description: "CONFIGURACIÓN: Propiedades del sistema. Buscar configuraciones sensibles."
+  - label: "Base64"
+    description: "DÉBIL: Codificación Base64. NO es cifrado, verificar uso correcto."
+  - label: "MD5"
+    description: "VULNERABLE: Hash MD5. Algoritmo comprometido, usar SHA-256 o superior."
+  - label: "SHA1"
+    description: "DÉBIL: Hash SHA1. Algoritmo débil, usar SHA-256 o superior."
+  - label: "DES"
+    description: "VULNERABLE: Cifrado DES. Algoritmo roto, usar AES."
+  - label: "HttpServletRequest"
+    description: "ENTRADA: Request HTTP. Verificar validación y sanitización de headers."
+  - label: "HttpServletResponse"
+    description: "SALIDA: Response HTTP. Verificar headers de seguridad (CSP, HSTS)."
+  - label: "Runtime.exec"
+    description: "CRÍTICO: Ejecución de comandos. ALTO RIESGO de Command Injection."
+  - label: "ProcessBuilder"
+    description: "CRÍTICO: Ejecución de procesos. Verificar validación de comandos."

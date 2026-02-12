@@ -1,0 +1,354 @@
+---
+description: Reglas de seguridad y modernización para proyectos Java Legacy con Spring Framework, análisis de CVEs críticos y migración a versiones actuales
+globs: ["**/*.java", "**/*.xml", "**/web.xml", "**/pom.xml", "**/*.properties", "**/*.jsp", "**/*.jspx", "**/build.gradle*"]
+alwaysApply: true
+---
+# Este es el prompt que se le dará a la IA.
+aiPrompt: |
+  Eres un experto en aplicaciones Java legacy con Spring Framework (pre-Spring Boot) con enfoque en SEGURIDAD y CLEAN CODE. Analiza la configuración basada en XML, los `web.xml`, y las clases de servicio y DAO. Presta ESPECIAL ATENCIÓN a:
+  - Vulnerabilidades específicas de aplicaciones legacy (XML External Entity, deserialization)
+  - Configuraciones de seguridad obsoletas o inseguras en XML
+  - Clean code y buenas prácticas para modernización de código legacy
+
+# Reglas de Clean Code para Java Legacy
+cleanCodeRules: |
+  Además de los aspectos de seguridad, aplica estas reglas para modernizar código legacy:
+
+  ## MODERNIZACIÓN Y REFACTORING:
+  - Migrar configuración XML a anotaciones cuando sea posible
+  - Reemplazar DAOs con Spring Data JPA Repositories
+  - Usar Optional en lugar de null checks manuales
+  - Migrar de Spring MVC XML a configuración Java
+  - Actualizar a versiones modernas de Spring (4.x+)
+  - Implementar inyección por constructor en lugar de field injection
+
+  ## NOMENCLATURA LEGACY:
+  - Mantener convenciones Java estándar: PascalCase para clases
+  - Refactorizar nombres poco descriptivos: DAO1, Service2, etc.
+  - Usar sufijos apropiados: UserDAO -> UserRepository
+  - Eliminar prefijos húngaros: strUserName -> userName
+  - Nombres de packages consistentes y descriptivos
+
+  ## ARQUITECTURA LEGACY:
+  - Separar lógica de negocio de controladores
+  - Extraer interfaces de implementaciones concretas
+  - Eliminar God Classes dividiendo responsabilidades
+  - Implementar manejo de excepciones consistente
+  - Usar patrones modernos: Builder, Factory, Strategy
+
+  ## CONFIGURACIÓN Y DEPENDENCIAS:
+  - Migrar de XML a JavaConfig gradualmente
+  - Actualizar dependencias a versiones seguras
+  - Eliminar configuraciones duplicadas
+  - Usar profiles para diferentes entornos
+  - Implementar configuración externa (properties/YAML)
+# Análisis de Proyecto Java Legacy Spring Framework
+
+Este template está diseñado para analizar proyectos Java que utilizan versiones legacy de Spring Framework (1.x - 3.x), identificando configuraciones inseguras, vulnerabilidades conocidas y patrones de código que requieren modernización.
+
+## Principales Riesgos de Seguridad:
+  - Dependencias de Spring Framework muy antiguas con CVEs conocidos
+  - Configuraciones de datasource con credenciales hardcodeadas
+  - Manejo inseguro de autenticación y autorización manual
+  - Filtros de seguridad mal implementados en web.xml
+  - Configuraciones de CORS y CSRF en versiones antiguas
+  - Vulnerabilidades de deserialización Java
+  - Inyección SQL en queries mal construidas
+  - XSS en vistas JSP sin escapado
+  - Configuraciones de logging inseguras (Log4Shell)
+  - Manejo inseguro de sesiones y cookies
+
+# Rutas a ignorar durante el análisis.
+ignorePaths:
+  - target/
+  - .idea/
+  - "*.iml"
+  - .settings/
+  - .classpath
+  - .project
+  - logs/
+  - "*.log"
+  - build/
+  - dist/
+  - .gradle/
+  - node_modules/
+
+# Ficheros específicos a buscar y analizar.
+find:
+  - label: "web.xml"
+    description: "CRÍTICO: Descriptor de despliegue. Busca filtros de seguridad faltantes, configuraciones inseguras, y versiones obsoletas de Servlet API."
+  - label: "applicationContext.xml"
+    description: "SEGURIDAD: Configuración Spring. Busca beans de seguridad mal configurados, datasources con credenciales hardcodeadas."
+  - label: "spring-security.xml"
+    description: "CRÍTICO: Configuración de seguridad legacy. Verifica configuraciones de autenticación y autorización."
+  - label: "security-context.xml"
+    description: "CRÍTICO: Contexto de seguridad. Verificar configuraciones de autenticación y filtros."
+  - label: "pom.xml"
+    description: "VULNERABILIDADES: Dependencias Maven. Busca versiones MUY ANTIGUAS de Spring (pre-4.x) con CVEs críticos."
+  - label: "build.xml"
+    description: "CONFIGURACIÓN: Build Ant. Verificar configuraciones de compilación y dependencias."
+  - label: "build.gradle"
+    description: "DEPENDENCIAS: Build Gradle. Verificar versiones de dependencias con vulnerabilidades."
+  - label: "persistence.xml"
+    description: "SEGURIDAD: Configuración JPA. Verificar configuraciones de datasource y validación."
+  - label: "hibernate.cfg.xml"
+    description: "CRÍTICO: Configuración Hibernate. Buscar credenciales hardcodeadas y configuraciones inseguras."
+  - label: "log4j.properties"
+    description: "CRÍTICO: Configuración Log4j legacy. VERIFICAR versión contra Log4Shell (CVE-2021-44228)."
+  - label: "log4j.xml"
+    description: "CRÍTICO: Configuración Log4j XML. VERIFICAR versión contra vulnerabilidades conocidas."
+  - label: "log4j2.xml"
+    description: "CRÍTICO: Log4j2. Verificar configuración segura y versión actualizada."
+  - label: "logback.xml"
+    description: "LOGGING: Configuración Logback. Verificar no exposición de información sensible."
+  - label: "security.properties"
+    description: "SEGURIDAD: Propiedades de seguridad. Buscar credenciales hardcodeadas y configuraciones débiles."
+  - label: "application.properties"
+    description: "CONFIGURACIÓN: Propiedades aplicación. Buscar credenciales y configuraciones inseguras."
+  - label: "database.properties"
+    description: "CRÍTICO: Configuración BD. Verificar credenciales no hardcodeadas."
+  - label: "struts.xml"
+    description: "CRÍTICO: Configuración Struts. Verificar versiones vulnerables (S2-XXX)."
+  - label: "struts-config.xml"
+    description: "CRÍTICO: Struts legacy. ALTO RIESGO de vulnerabilidades remotas."
+  - label: "tiles-defs.xml"
+    description: "VISTAS: Definiciones Tiles. Verificar configuraciones seguras."
+  - label: "faces-config.xml"
+    description: "JSF: Configuración JSF. Verificar validaciones y navegación segura."
+  - label: "**/*.jsp"
+    description: "CRÍTICO: Páginas JSP. Buscar XSS, CSRF, y exposición de datos sensibles."
+  - label: "**/*.jspx"
+    description: "JSP XML: Páginas JSP XML. Verificar escapado de datos y validaciones."
+  - label: "**/*.jspf"
+    description: "CRÍTICO: Fragmentos JSP. Buscar XSS y validaciones en fragmentos incluidos."
+  - label: "**/*.tld"
+    description: "TAG LIBS: Librerías de tags. Verificar implementaciones seguras."
+  - label: "**/*.xsd"
+    description: "ESQUEMAS: Esquemas XML. Verificar configuraciones de validación."
+  - label: "**/*.wsdl"
+    description: "WEB SERVICES: Definiciones WSDL. Verificar configuraciones de seguridad SOAP."
+
+# Símbolos o anotaciones clave a identificar en el código.
+symbols:
+  # === CLEAN CODE Y MODERNIZACIÓN LEGACY ===
+  
+  # Patrones legacy a modernizar
+  - label: "class.*DAO\s*\{"
+    description: "LEGACY: DAO pattern. Considerar migrar a Spring Data JPA Repository"
+  - label: "implements.*DAO"
+    description: "MODERNIZACIÓN: Interface DAO. Migrar a Repository pattern"
+  - label: "new.*Exception\(\)"
+    description: "LEGACY: Excepción genérica. Crear excepciones específicas del dominio"
+  - label: "if.*!=.*null"
+    description: "MODERNIZACIÓN: Null check manual. Usar Optional en Java 8+"
+  
+  # Configuración XML legacy
+  - label: "<property.*ref.*="
+    description: "XML CONFIG: Property injection. Migrar a constructor injection con @Autowired"
+  - label: "<mvc:annotation-driven"
+    description: "XML CONFIG: MVC XML. Migrar a @EnableWebMvc en JavaConfig"
+  - label: "<context:component-scan.*base-package"
+    description: "XML CONFIG: Component scan XML. Migrar a @ComponentScan en JavaConfig"
+  
+  # Nomenclatura legacy
+  - label: "class.*[0-9]+"
+    description: "NOMENCLATURA: Clase con números. Usar nombres descriptivos sin numeración"
+  - label: "str[A-Z].*="
+    description: "NOMENCLATURA: Prefijo húngaro 'str'. Eliminar prefijos de tipo"
+  - label: "public.*get\(\)"
+    description: "NOMENCLATURA: Getter genérico. Especificar qué obtiene: getUser(), getData()"
+  
+  # Marcadores de deuda técnica
+  - label: "TODO:"
+    description: "DEUDA TÉCNICA: Código temporal que necesita ser completado o mejorado."
+  - label: "FIXME:"
+    description: "CRÍTICO: Código que funciona pero tiene problemas conocidos que deben arreglarse."
+  - label: "HACK:"
+    description: "DEUDA TÉCNICA: Solución temporal no elegante que necesita refactoring."
+  - label: "XXX:"
+    description: "ATENCIÓN: Código problemático o peligroso que necesita revisión urgente."
+  - label: "DEPRECATED:"
+    description: "OBSOLETO: Código que será removido en futuras versiones."
+  
+  # === CONFIGURACIONES SPRING XML CRÍTICAS ===
+  
+  - label: "<bean>"
+    description: "CONFIGURACIÓN: Beans Spring XML. Verificar configuración segura de servicios críticos."
+  - label: "<context:component-scan>"
+    description: "ESCANEO: Componentes automáticos. Verificar que no escanee paquetes inseguros."
+  - label: "<security:http>"
+    description: "CRÍTICO: Configuración HTTP de seguridad. Verificar CSRF, session management, y autenticación."
+  - label: "<security:authentication-manager>"
+    description: "AUTENTICACIÓN: Manager de autenticación. Verificar configuración de providers seguros."
+  - label: "<security:user-service>"
+    description: "USUARIOS: Servicio de usuarios. Buscar credenciales hardcodeadas en XML."
+  - label: "<security:jdbc-user-service>"
+    description: "CRÍTICO: Usuarios en BD. Verificar queries seguras y hash de passwords."
+  - label: "<security:password-encoder>"
+    description: "CRÍTICO: Codificación passwords. Verificar algoritmos seguros (no MD5/SHA1)."
+  - label: "<security:session-management>"
+    description: "SESIONES: Gestión sesiones. Verificar timeout, concurrent sessions, session fixation."
+  - label: "<security:remember-me>"
+    description: "SEGURIDAD: Remember-me. Verificar configuración segura de tokens."
+
+  # Filtros y servlets web.xml
+  - label: "<filter>"
+    description: "FILTROS: Filtros web.xml. Verificar filtros de seguridad críticos (CSRF, XSS, auth)."
+  - label: "<servlet>"
+    description: "SERVLETS: Configuración servlet. Verificar configuraciones de seguridad."
+  - label: "<filter-mapping>"
+    description: "MAPEO: Mapeo filtros. Verificar que filtros de seguridad cubran todas las URLs."
+  - label: "<security-constraint>"
+    description: "RESTRICCIONES: Restricciones de seguridad. Verificar configuraciones de autorización."
+  - label: "<login-config>"
+    description: "LOGIN: Configuración login. Verificar métodos de autenticación seguros."
+  - label: "<security-role>"
+    description: "ROLES: Roles de seguridad. Verificar definición correcta de roles."
+
+  # Anotaciones Spring/Java
+  - label: "@Controller"
+    description: "SEGURIDAD: Controladores MVC. Buscar vulnerabilidades XSS y validación de entrada."
+  - label: "@RestController"
+    description: "API: Controladores REST. Verificar validación entrada y autorización endpoints."
+  - label: "@Service"
+    description: "SERVICIOS: Lógica de negocio. Verificar validaciones y manejo de errores."
+  - label: "@Repository"
+    description: "CRÍTICO: Acceso a datos. Buscar queries vulnerables a SQL Injection."
+  - label: "@Transactional"
+    description: "TRANSACCIONES: Manejo transaccional. Verificar configuración de aislamiento."
+  - label: "@Secured"
+    description: "AUTORIZACIÓN: Seguridad a nivel de método. Verificar configuración correcta."
+  - label: "@RolesAllowed"
+    description: "AUTORIZACIÓN: Roles permitidos. Verificar roles apropiados."
+  - label: "@PreAuthorize"
+    description: "AUTORIZACIÓN: Pre-autorización. Verificar expresiones SpEL seguras."
+  - label: "@PostAuthorize"
+    description: "AUTORIZACIÓN: Post-autorización. Verificar filtrado de resultados."
+
+  # Configuraciones de datos críticas
+  - label: "SessionFactory"
+    description: "HIBERNATE: Factory de sesiones. Verificar configuración segura de Hibernate."
+  - label: "DataSource"
+    description: "CRÍTICO: Configuración BD. Buscar credenciales hardcodeadas y configuraciones inseguras."
+  - label: "DriverManagerDataSource"
+    description: "DATASOURCE: Driver simple. Verificar configuración de conexión segura."
+  - label: "BasicDataSource"
+    description: "POOL: Pool de conexiones. Verificar configuración de pool segura."
+  - label: "ComboPooledDataSource"
+    description: "C3P0: Pool C3P0. Verificar configuraciones de timeout y validación."
+  - label: "HikariDataSource"
+    description: "HIKARI: Pool Hikari. Verificar configuraciones de seguridad."
+
+  # Templates y queries CRÍTICAS
+  - label: "JdbcTemplate"
+    description: "CRÍTICO: Template JDBC. Buscar queries concatenadas vulnerables a SQL Injection."
+  - label: "SimpleJdbcTemplate"
+    description: "JDBC: Template simple. Verificar uso de parámetros preparados."
+  - label: "NamedParameterJdbcTemplate"
+    description: "JDBC: Template con parámetros nombrados. Verificar sanitización parámetros."
+  - label: "createQuery"
+    description: "CRÍTICO: Queries dinámicas. Verificar contra HQL/SQL Injection."
+  - label: "createSQLQuery"
+    description: "CRÍTICO: Queries SQL nativas. ALTO RIESGO de SQL Injection."
+  - label: "createNativeQuery"
+    description: "CRÍTICO: Queries nativas JPA. Verificar parámetros seguros."
+  - label: "setString"
+    description: "PARÁMETROS: Configuración de parámetros. Verificar sanitización."
+  - label: "executeQuery"
+    description: "CRÍTICO: Ejecución queries. Verificar uso de PreparedStatement."
+  - label: "executeUpdate"
+    description: "CRÍTICO: Updates dinámicos. Verificar contra SQL Injection."
+
+  # Manejo HTTP y sesiones
+  - label: "HttpServletRequest"
+    description: "REQUEST: Peticiones HTTP. Verificar validación de headers y parámetros."
+  - label: "HttpServletResponse"
+    description: "RESPONSE: Respuestas HTTP. Verificar headers de seguridad (CSP, HSTS)."
+  - label: "HttpSession"
+    description: "SESIONES: Manejo de sesiones. Verificar configuración segura (timeout, cookies)."
+  - label: "RequestMapping"
+    description: "MAPEO: Mapeo de requests. Verificar métodos HTTP permitidos y autorización."
+  - label: "ModelAndView"
+    description: "VISTA: Modelo y vista. Verificar no exposición de datos sensibles en modelo."
+  - label: "RedirectView"
+    description: "REDIRECT: Redirecciones. Verificar contra Open Redirect vulnerabilities."
+
+  # Deserialización y ejecución CRÍTICA
+  - label: "XMLDecoder"
+    description: "CRÍTICO: Deserialización XML. ALTO RIESGO de ejecución de código remoto."
+  - label: "ObjectInputStream"
+    description: "CRÍTICO: Deserialización Java. RIESGO de ejecución de código malicioso."
+  - label: "readObject"
+    description: "CRÍTICO: Lectura objetos serializados. Verificar validación antes de deserializar."
+  - label: "Runtime.exec"
+    description: "CRÍTICO: Ejecución de comandos. ALTO RIESGO de Command Injection."
+  - label: "ProcessBuilder"
+    description: "CRÍTICO: Ejecución de procesos. Verificar validación de comandos."
+  - label: "ScriptEngine"
+    description: "CRÍTICO: Ejecución scripts. Verificar validación entrada para evitar code injection."
+
+  # Validación y sanitización
+  - label: "@Valid"
+    description: "VALIDACIÓN: Validación Bean Validation. Verificar reglas de validación completas."
+  - label: "@NotNull"
+    description: "VALIDACIÓN: Campos no nulos. Verificar validación en todos los niveles."
+  - label: "@Size"
+    description: "VALIDACIÓN: Tamaño campos. Verificar límites apropiados."
+  - label: "@Pattern"
+    description: "VALIDACIÓN: Patrones regex. Verificar expresiones regulares seguras."
+  - label: "Validator"
+    description: "VALIDACIÓN: Validadores custom. Verificar implementación segura."
+
+  # Criptografía y hashing
+  - label: "MessageDigest"
+    description: "CRYPTO: Hashing. Verificar algoritmos seguros (no MD5/SHA1 para passwords)."
+  - label: "Cipher"
+    description: "CRYPTO: Cifrado. Verificar algoritmos y modos seguros (no DES, no ECB)."
+  - label: "SecureRandom"
+    description: "CRYPTO: Números aleatorios seguros. Verificar uso correcto."
+  - label: "KeyGenerator"
+    description: "CRYPTO: Generación claves. Verificar tamaños de clave apropiados."
+  - label: "BCrypt"
+    description: "CRYPTO: Hashing passwords. Verificar factor de trabajo apropiado."
+  - label: "PBKDF2"
+    description: "CRYPTO: Key derivation. Verificar iteraciones y salt."
+
+  # Configuraciones JSP y vistas
+  - label: "<%="
+    description: "CRÍTICO: Expresiones JSP. ALTO RIESGO de XSS si no se escapa la salida."
+  - label: "<c:out"
+    description: "JSP: Tag out. Verificar escapado habilitado (escapeXml=true)."
+  - label: "${param."
+    description: "CRÍTICO: Parámetros EL. Verificar sanitización antes de mostrar."
+  - label: "pageContext"
+    description: "JSP: Contexto página. Verificar no exposición de datos sensibles."
+  - label: "request.getParameter"
+    description: "CRÍTICO: Parámetros request. Verificar validación y sanitización."
+
+  # Web Services y APIs
+  - label: "@WebService"
+    description: "WS: Servicios web SOAP. Verificar autenticación y autorización."
+  - label: "@Path"
+    description: "REST: Endpoints JAX-RS. Verificar autorización y validación entrada."
+  - label: "SOAPMessage"
+    description: "SOAP: Mensajes SOAP. Verificar validación contra XML bombing."
+  - label: "JAXBContext"
+    description: "XML: Binding JAXB. Verificar configuraciones seguras."
+
+  # Logging y auditoría
+  - label: "Logger"
+    description: "LOGGING: Logging. Verificar no logging de información sensible."
+  - label: "log.debug"
+    description: "DEBUG: Logs debug. Verificar no exposición datos sensibles en producción."
+  - label: "log.error"
+    description: "ERROR: Logs error. Verificar no exposición stack traces sensibles."
+
+  # Configuraciones de red y SSL
+  - label: "TrustManager"
+    description: "CRÍTICO: Gestión certificados. Verificar no aceptar todos los certificados."
+  - label: "HostnameVerifier"
+    description: "CRÍTICO: Verificación hostname SSL. Verificar implementación segura."
+  - label: "SSLContext"
+    description: "SSL: Contexto SSL. Verificar configuración segura (TLS 1.2+)."
+  - label: "HttpsURLConnection"
+    description: "HTTPS: Conexiones HTTPS. Verificar validación certificados."

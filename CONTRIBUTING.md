@@ -61,7 +61,7 @@ Las sugerencias de mejoras se rastrean como issues. Al crear una sugerencia de m
 ## Configuración de Desarrollo
 
 1. Fork el repositorio
-2. Clona tu fork: `git clone https://github.com/tuusuario/ruleforge-mcp.git`
+2. Clona tu fork: `git clone https://github.com/VitalyTechSquad/mcp-ruleforge.git`
 3. Crea un entorno virtual: `python -m venv venv`
 4. Activa el entorno: 
    - Windows: `venv\Scripts\activate`

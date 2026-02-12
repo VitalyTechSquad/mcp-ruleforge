@@ -139,4 +139,4 @@ Si encuentras problemas o tienes sugerencias, por favor:
 
 **¿Te gustaría contribuir?** ¡Simplemente abre un issue o PR!
 
-**Última actualización:** Febrero 2025
+**Última actualización:** Febrero 2026

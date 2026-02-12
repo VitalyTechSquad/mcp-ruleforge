@@ -1,0 +1,408 @@
+---
+description: Reglas de seguridad frontend y clean code para proyectos Vue.js con análisis XSS, buenas prácticas JavaScript/TypeScript y arquitectura de componentes
+globs: ["**/*.vue", "**/*.js", "**/*.ts", "**/*.html", "**/*.scss", "**/*.css", "**/package.json", "**/vite.config*", "**/vue.config*", "**/nuxt.config*"]
+alwaysApply: true
+---
+
+# Este es el prompt que se le dará a la IA.
+aiPrompt: |
+  Eres un experto en Vue.js con enfoque en SEGURIDAD FRONTEND y CLEAN CODE. Analiza los componentes de un solo fichero (.vue), el enrutador de Vue, la gestión de estado con Pinia o Vuex, y cómo se realizan las llamadas a la API. Presta ESPECIAL ATENCIÓN a:
+  - Vulnerabilidades XSS en templates y directivas v-html
+  - Manejo inseguro de datos reactivos y props
+  - Autenticación y autorización insegura en rutas
+  - Exposición de secrets y configuraciones en el frontend
+  - Dependencias npm con vulnerabilidades conocidas
+  - Validación insegura de formularios
+  - Configuraciones de desarrollo expuestas en producción
+  - XSS a través de v-html sin sanitización
+  - Exposición de datos sensibles en el estado reactivo
+  - Configuraciones de CORS y CSP débiles
+  - Manejo inseguro de tokens JWT en localStorage
+  - Bypass de validaciones del lado cliente
+  - Exposición de API keys en el código frontend
+  - Inyección de HTML malicioso en componentes dinámicos
+  - Clean code y buenas prácticas de desarrollo Vue.js
+
+# Reglas de Clean Code y Buenas Prácticas Vue.js
+cleanCodeRules: |
+  Además de los aspectos de seguridad, aplica estas reglas de clean code específicas para Vue.js:
+
+  ## NOMENCLATURA Y CONVENCIONES VUE:
+  - Usa PascalCase para componentes: UserProfile.vue, PaymentForm.vue
+  - Usa kebab-case en templates: <user-profile>, <payment-form>
+  - Usa camelCase para props y métodos: userName, calculateTotal()
+  - Usa UPPER_CASE para constantes: API_BASE_URL, MAX_RETRY_ATTEMPTS
+  - Nombres descriptivos para componentes: UserListItem vs Item
+  - Prefijos para componentes base: BaseButton, BaseInput
+  - Sufijos para componentes específicos: UserCard, ProductList
+
+  ## COMPONENTES VUE:
+  - Un componente debe tener UNA responsabilidad específica
+  - Máximo 300 líneas por componente (.vue file)
+  - Usa Composition API para lógica compleja (Vue 3)
+  - Props con validación de tipos y valores por defecto
+  - Emits declarados explícitamente con defineEmits
+  - Usa computed para valores derivados, no métodos en templates
+  - Implementa cleanup en onUnmounted para listeners
+
+  ## COMPOSABLES Y ESTADO:
+  - Composables reutilizables con prefijo use: useAuth, useApi
+  - Estado reactivo mínimo, deriva lo que puedas con computed
+  - Usa Pinia para estado global complejo
+  - Evita mutaciones directas del estado en Vuex
+  - Implementa getters para lógica de acceso a datos
+  - Usa actions para operaciones asíncronas
+
+  ## TEMPLATES Y DIRECTIVAS:
+  - Usa v-for con :key único y estable
+  - Prefiere v-show sobre v-if para toggles frecuentes
+  - Usa v-model.trim para inputs de texto
+  - Evita lógica compleja en templates, muévela a computed
+  - Usa slots para componentes reutilizables
+  - Implementa scoped slots para datos dinámicos
+
+# Rutas a ignorar durante el análisis.
+ignorePaths:
+  - node_modules/
+  - dist/
+  - coverage/
+  - "*.log"
+  - .nuxt/
+  - .output/
+  - .next/
+  - build/
+  - public/
+  - static/
+  - .vscode/
+  - .idea/
+
+# Ficheros específicos a buscar y analizar.
+find:
+  - label: "package.json"
+    description: "CRÍTICO: Dependencias npm y versión Vue. Busca paquetes con CVEs conocidos usando 'npm audit'."
+  - label: "package-lock.json"
+    description: "SEGURIDAD: Versiones exactas. Verifica que no haya versiones vulnerables bloqueadas."
+  - label: "yarn.lock"
+    description: "SEGURIDAD: Lock file Yarn. Verificar versiones de dependencias seguras."
+  - label: "vue.config.js"
+    description: "CONFIGURACIÓN: Revisa proxy, CSP, y que configuraciones de dev no vayan a prod."
+  - label: "vite.config.js"
+    description: "CONFIGURACIÓN: Configuración Vite. Verifica configuraciones de seguridad y proxy."
+  - label: "vite.config.ts"
+    description: "CONFIGURACIÓN: Vite TypeScript. Verificar configuraciones de build y dev."
+  - label: "nuxt.config.ts"
+    description: "SEGURIDAD: Configuración Nuxt. Verifica SSR seguro y headers de protección."
+  - label: "nuxt.config.js"
+    description: "SEGURIDAD: Configuración Nuxt JS. Verificar configuraciones de seguridad."
+  - label: "src/router/index.js"
+    description: "AUTORIZACIÓN: Examina rutas y verifica guards de navegación para rutas sensibles."
+  - label: "src/router/index.ts"
+    description: "AUTORIZACIÓN: Router TypeScript. Verificar guards y middleware de seguridad."
+  - label: "src/stores/"
+    description: "ESTADO: Stores de Pinia/Vuex. Verifica que no contengan datos sensibles."
+  - label: "src/store/"
+    description: "ESTADO: Store Vuex. Verificar no exposición de tokens o datos críticos."
+  - label: ".env"
+    description: "CRÍTICO: Variables de entorno. Busca API keys y secrets expuestos."
+  - label: ".env.local"
+    description: "SECRETOS: Configuración local. Verificar que no se versione con secrets."
+  - label: ".env.production"
+    description: "SECRETOS: Configuración producción. Verifica que no exponga credenciales."
+  - label: ".env.development"
+    description: "DEV: Configuración desarrollo. Verificar que no vaya a producción."
+  - label: "src/main.js"
+    description: "CONFIGURACIÓN: Punto de entrada. Verifica configuraciones de seguridad globales."
+  - label: "src/main.ts"
+    description: "CONFIGURACIÓN: Main TypeScript. Verificar plugins y configuraciones seguras."
+  - label: "public/index.html"
+    description: "SEGURIDAD: HTML base. Verifica meta tags de seguridad (CSP, X-Frame-Options)."
+  - label: "index.html"
+    description: "SEGURIDAD: HTML principal. Verificar headers de seguridad y CSP."
+  - label: "src/App.vue"
+    description: "COMPONENTE: Componente raíz. Verificar configuraciones globales de seguridad."
+  - label: "middleware/"
+    description: "AUTORIZACIÓN: Middleware de rutas. Verificar lógica de autenticación."
+  - label: "plugins/"
+    description: "PLUGINS: Plugins personalizados. Verificar configuraciones seguras."
+  - label: "composables/"
+    description: "COMPOSABLES: Funciones reutilizables. Verificar manejo seguro de datos."
+  - label: "utils/"
+    description: "UTILIDADES: Funciones utilitarias. Verificar validación y sanitización."
+  - label: "services/"
+    description: "SERVICIOS: Servicios API. Verificar autenticación y manejo de errores."
+  - label: "api/"
+    description: "API: Configuración API. Verificar interceptors y manejo de tokens."
+  - label: "**/*.vue"
+    description: "CRÍTICO: Componentes Vue. Buscar v-html sin sanitizar, XSS, y exposición de datos."
+  - label: "cypress.config.js"
+    description: "TESTING: Configuración Cypress. Verificar que no exponga credenciales de test."
+  - label: "playwright.config.js"
+    description: "TESTING: Configuración Playwright. Verificar configuraciones seguras."
+  - label: "vitest.config.js"
+    description: "TESTING: Configuración Vitest. Verificar configuraciones de test."
+  - label: "jest.config.js"
+    description: "TESTING: Configuración Jest. Verificar no exposición de datos sensibles."
+
+# Símbolos o anotaciones clave a identificar en el código.
+symbols:
+  # === CLEAN CODE Y BUENAS PRÁCTICAS VUE ===
+  
+  # Nomenclatura y convenciones
+  - label: "name: '[a-z].*'"
+    description: "CONVENCIÓN: Componente con minúscula inicial. Usar PascalCase: 'UserProfile'"
+  - label: "<[a-z]+[A-Z].*>"
+    description: "CONVENCIÓN: Tag camelCase en template. Usar kebab-case: <user-profile>"
+  - label: "\w{1,2}\("
+    description: "NOMENCLATURA: Método con nombre muy corto. Usar nombres descriptivos"
+  
+  # Componentes y arquitectura
+  - label: "methods:.*\{[\s\S]{500,}\}"
+    description: "COMPLEJIDAD: Bloque methods muy grande. Dividir en composables o computed"
+  - label: "\{\{.*\(\).*\}\}"
+    description: "PERFORMANCE: Llamada a método en template. Usar computed property"
+  - label: "v-for.*:key.*index"
+    description: "PERFORMANCE: Usar index como key. Usar identificador único estable"
+  
+  # Composition API y reactividad
+  - label: "ref\(.*\{.*\}.*\)"
+    description: "REACTIVIDAD: Objeto en ref(). Usar reactive() para objetos complejos"
+  - label: "watch.*immediate.*true.*deep.*true"
+    description: "PERFORMANCE: Watcher con immediate y deep. Optimizar o usar watchEffect"
+  
+  # Marcadores de deuda técnica
+  - label: "TODO:"
+    description: "DEUDA TÉCNICA: Código temporal que necesita ser completado o mejorado."
+  - label: "FIXME:"
+    description: "CRÍTICO: Código que funciona pero tiene problemas conocidos que deben arreglarse."
+  - label: "HACK:"
+    description: "DEUDA TÉCNICA: Solución temporal no elegante que necesita refactoring."
+  - label: "XXX:"
+    description: "ATENCIÓN: Código problemático o peligroso que necesita revisión urgente."
+  - label: "DEPRECATED:"
+    description: "OBSOLETO: Código que será removido en futuras versiones."
+  
+  # === ESTRUCTURA DE COMPONENTES VUE ===
+  
+  - label: "<template>"
+    description: "TEMPLATE: Bloque de plantilla HTML. Verificar escapado de datos y XSS."
+  - label: "<script setup>"
+    description: "COMPOSITION: Script setup (Vue 3). Verificar exposición de datos sensibles."
+  - label: "<script>"
+    description: "OPTIONS: Script tradicional. Verificar lógica de seguridad."
+  - label: "<style scoped>"
+    description: "ESTILOS: Estilos con scope. Verificar no inyección de CSS malicioso."
+
+  # Composition API y reactividad
+  - label: "defineProps"
+    description: "PROPS: Define propiedades. Verifica validación de tipos y valores obligatorios."
+  - label: "defineEmits"
+    description: "EVENTOS: Define eventos. Verificar validación de payloads."
+  - label: "defineExpose"
+    description: "EXPOSICIÓN: Expone métodos/datos. Verificar no exposición de datos sensibles."
+  - label: "ref("
+    description: "REACTIVIDAD: Referencia reactiva. Verificar no exposición de tokens o secrets."
+  - label: "reactive("
+    description: "REACTIVIDAD: Objeto reactivo. Verificar no exposición de datos sensibles."
+  - label: "computed("
+    description: "COMPUTADAS: Propiedades calculadas. Verificar no exposición de lógica sensible."
+  - label: "watch("
+    description: "OBSERVADORES: Watchers. Verificar no logging de datos sensibles."
+  - label: "watchEffect("
+    description: "WATCHERS: Watch effect. Verificar efectos secundarios seguros."
+
+  # Directivas Vue críticas para seguridad
+  - label: "v-html"
+    description: "CRÍTICO: XSS RISK. Renderiza HTML sin sanitizar. EVITAR o sanitizar datos."
+  - label: "v-text"
+    description: "SEGURO: Renderiza texto escapado. Preferir sobre v-html."
+  - label: "v-model"
+    description: "ENTRADA: Binding bidireccional. Verificar validación de datos de entrada."
+  - label: "v-on"
+    description: "EVENTOS: Manejo de eventos. Verificar validación de acciones."
+  - label: "v-bind"
+    description: "BINDING: Enlace de datos. Verificar no binding de datos sensibles."
+  - label: "v-if"
+    description: "AUTORIZACIÓN: Rendering condicional. Verificar lógica de permisos correcta."
+  - label: "v-show"
+    description: "PRIVACIDAD: Visibilidad condicional. Datos siguen en DOM, cuidado con info sensible."
+  - label: "v-for"
+    description: "ITERACIÓN: Bucles. Verificar validación de datos iterados y keys únicas."
+
+  # Router y navegación
+  - label: "createRouter"
+    description: "ROUTER: Crear router. Verificar configuración de guards globales."
+  - label: "router.push"
+    description: "NAVEGACIÓN: Redirección programática. Verificar validación contra Open Redirect."
+  - label: "router.replace"
+    description: "NAVEGACIÓN: Reemplazo de ruta. Verificar validación de rutas de destino."
+  - label: "router.go"
+    description: "NAVEGACIÓN: Navegación por historial. Verificar validación de parámetros."
+  - label: "beforeRouteEnter"
+    description: "AUTORIZACIÓN: Guard de entrada. Verificar autenticación y permisos."
+  - label: "beforeRouteUpdate"
+    description: "AUTORIZACIÓN: Guard de actualización. Verificar permisos continuos."
+  - label: "beforeRouteLeave"
+    description: "LIMPIEZA: Guard de salida. Verificar limpieza de datos sensibles."
+  - label: "beforeEach"
+    description: "GLOBAL: Guard global. Verificar autenticación en rutas protegidas."
+  - label: "beforeResolve"
+    description: "RESOLUCIÓN: Guard de resolución. Verificar validación final de rutas."
+
+  # Ciclo de vida de componentes
+  - label: "onMounted"
+    description: "MONTAJE: Hook de montaje. Verificar inicialización segura de datos."
+  - label: "onUnmounted"
+    description: "LIMPIEZA: Hook de desmontaje. Verificar limpieza de listeners y datos sensibles."
+  - label: "onBeforeMount"
+    description: "PRE-MONTAJE: Antes del montaje. Verificar preparación segura."
+  - label: "onBeforeUnmount"
+    description: "PRE-LIMPIEZA: Antes del desmontaje. Verificar limpieza preventiva."
+  - label: "onUpdated"
+    description: "ACTUALIZACIÓN: Después de actualizar. Verificar efectos secundarios seguros."
+  - label: "onActivated"
+    description: "ACTIVACIÓN: Keep-alive activado. Verificar reactivación segura."
+  - label: "onDeactivated"
+    description: "DESACTIVACIÓN: Keep-alive desactivado. Verificar limpieza temporal."
+
+  # Inyección de dependencias
+  - label: "provide("
+    description: "INYECCIÓN: Proveedor de dependencias. Verificar no exposición de datos sensibles."
+  - label: "inject("
+    description: "INYECCIÓN: Consumidor de dependencias. Verificar validación de datos inyectados."
+
+  # Composables y estado
+  - label: "useFetch"
+    description: "API: Composable HTTP. Verificar manejo seguro de errores y autenticación."
+  - label: "useState"
+    description: "ESTADO: Estado global. Verificar no exposición de tokens o datos críticos."
+  - label: "useCookie"
+    description: "COOKIES: Manejo de cookies. Verificar configuración segura (httpOnly, secure, sameSite)."
+  - label: "useRouter"
+    description: "ROUTER: Composable router. Verificar uso seguro de navegación."
+  - label: "useRoute"
+    description: "ROUTE: Ruta actual. Verificar validación de parámetros de ruta."
+  - label: "useHead"
+    description: "HEAD: Gestión head. Verificar no inyección de scripts maliciosos."
+  - label: "useLazyFetch"
+    description: "API: Fetch lazy. Verificar manejo de errores y timeout."
+
+  # Store management (Pinia/Vuex)
+  - label: "defineStore"
+    description: "STORE: Definir store Pinia. Verificar no almacenamiento de datos sensibles."
+  - label: "createStore"
+    description: "STORE: Crear store Vuex. Verificar configuración segura del estado."
+  - label: "mapState"
+    description: "MAPEO: Mapear estado. Verificar no exposición de datos críticos."
+  - label: "mapGetters"
+    description: "MAPEO: Mapear getters. Verificar no exposición de lógica sensible."
+  - label: "mapActions"
+    description: "MAPEO: Mapear acciones. Verificar validación en acciones."
+  - label: "mapMutations"
+    description: "MAPEO: Mapear mutaciones. Verificar validación de cambios de estado."
+
+  # Almacenamiento del navegador CRÍTICO
+  - label: "localStorage"
+    description: "CRÍTICO: Almacenamiento local. NO almacenar tokens JWT ni datos sensibles."
+  - label: "sessionStorage"
+    description: "CRÍTICO: Almacenamiento de sesión. NO almacenar credenciales o datos críticos."
+  - label: "indexedDB"
+    description: "CRÍTICO: Base de datos local. Verificar cifrado de datos sensibles."
+  - label: "document.cookie"
+    description: "COOKIES: Manipulación directa. Verificar configuraciones seguras."
+
+  # DOM y manipulación CRÍTICA
+  - label: "eval("
+    description: "CRÍTICO: Ejecución de código dinámico. PROHIBIDO en aplicaciones seguras."
+  - label: "Function("
+    description: "CRÍTICO: Constructor Function. Equivale a eval(), EVITAR completamente."
+  - label: "innerHTML"
+    description: "CRÍTICO: XSS RISK. Puede ejecutar JavaScript malicioso. Usar textContent."
+  - label: "outerHTML"
+    description: "CRÍTICO: XSS RISK. Reemplaza elemento completo. Muy peligroso."
+  - label: "document.write"
+    description: "CRÍTICO: XSS RISK. Escritura directa al DOM. EVITAR completamente."
+  - label: "insertAdjacentHTML"
+    description: "CRÍTICO: XSS RISK. Inserción de HTML. Sanitizar o evitar."
+  - label: "createContextualFragment"
+    description: "CRÍTICO: XSS RISK. Creación de fragmentos HTML. Validar contenido."
+  - label: "nextTick"
+    description: "DOM: Acceso al DOM. Verificar manipulación segura post-render."
+
+  # HTTP y API
+  - label: "fetch("
+    description: "API: Peticiones HTTP. Verificar manejo de errores y validación de respuestas."
+  - label: "axios."
+    description: "API: Cliente HTTP Axios. Verificar interceptors y configuración de timeout."
+  - label: "$http"
+    description: "API: Cliente HTTP Vue. Verificar configuración segura y headers."
+  - label: "XMLHttpRequest"
+    description: "API: XHR nativo. Verificar configuración CORS y validación de respuestas."
+
+  # Eventos y listeners
+  - label: "addEventListener"
+    description: "EVENTOS: Event listeners. Verificar limpieza en desmontaje y validación."
+  - label: "removeEventListener"
+    description: "LIMPIEZA: Remover listeners. Verificar limpieza completa."
+  - label: "postMessage"
+    description: "CRÍTICO: Comunicación entre frames. Verificar validación de origen."
+  - label: "onmessage"
+    description: "CRÍTICO: Receptor de mensajes. Verificar validación estricta de origen."
+
+  # Configuración y entorno
+  - label: "process.env"
+    description: "CONFIGURACIÓN: Variables de entorno. Verificar no exposición de secrets."
+  - label: "import.meta.env"
+    description: "CONFIGURACIÓN: Variables Vite. Verificar prefijo VITE_ para variables públicas."
+  - label: "console.log"
+    description: "DEBUG: Logging. Verificar no exposición de datos sensibles en producción."
+  - label: "console.error"
+    description: "ERROR: Error logging. Verificar no exposición de stack traces sensibles."
+
+  # Validación y sanitización
+  - label: "validator"
+    description: "VALIDACIÓN: Librerías de validación. Verificar reglas completas y seguras."
+  - label: "sanitize"
+    description: "SANITIZACIÓN: Funciones de limpieza. Verificar implementación completa."
+  - label: "DOMPurify"
+    description: "SANITIZACIÓN: Limpieza HTML. Verificar configuración apropiada."
+  - label: "escape"
+    description: "ESCAPE: Funciones de escape. Verificar contexto apropiado (HTML, JS, CSS)."
+
+  # Criptografía y hashing
+  - label: "crypto."
+    description: "CRYPTO: API de criptografía. Verificar uso de algoritmos seguros."
+  - label: "btoa("
+    description: "ENCODING: Base64 encode. NO ES CIFRADO, no usar para datos sensibles."
+  - label: "atob("
+    description: "DECODING: Base64 decode. Verificar validación de entrada."
+  - label: "CryptoJS"
+    description: "CRYPTO: Librería CryptoJS. Verificar algoritmos seguros y manejo de claves."
+
+  # Importaciones dinámicas y módulos
+  - label: "import("
+    description: "IMPORTACIÓN: Import dinámico. Verificar validación de rutas de módulos."
+  - label: "require("
+    description: "REQUIRE: Carga de módulos. Verificar validación de paths."
+  - label: "webpackChunkName"
+    description: "BUNDLING: Chunks nombrados. Verificar no exposición de información sensible."
+
+  # Configuraciones específicas Vue 3
+  - label: "createApp"
+    description: "APP: Crear aplicación Vue 3. Verificar configuraciones globales de seguridad."
+  - label: "defineComponent"
+    description: "COMPONENTE: Definir componente. Verificar configuración de props y validaciones."
+  - label: "markRaw"
+    description: "REACTIVIDAD: Marcar como no reactivo. Verificar uso apropiado."
+  - label: "shallowRef"
+    description: "REACTIVIDAD: Referencia superficial. Verificar no exposición de datos profundos."
+
+  # Nuxt específico
+  - label: "$nuxt"
+    description: "NUXT: Instancia Nuxt. Verificar uso seguro de helpers globales."
+  - label: "asyncData"
+    description: "SSR: Datos asíncronos. Verificar no exposición de datos del servidor."
+  - label: "serverMiddleware"
+    description: "MIDDLEWARE: Server middleware. Verificar autenticación y autorización."
+  - label: "nitro"
+    description: "SERVIDOR: Engine Nitro. Verificar configuraciones de servidor seguras."
+

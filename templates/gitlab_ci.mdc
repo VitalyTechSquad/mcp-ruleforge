@@ -1,0 +1,185 @@
+---
+description: Reglas de seguridad DevSecOps y clean code para pipelines GitLab CI/CD con análisis de secrets, configuraciones Docker y buenas prácticas YAML
+globs: ["**/.gitlab-ci.yml", "**/gitlab-ci.yml", "**/*.gitlab-ci.yml", "**/Dockerfile*", "**/docker-compose*.yml", "**/.dockerignore"]
+alwaysApply: true
+---
+
+# Este es el prompt que se le dará a la IA.
+aiPrompt: |
+  Eres un experto en GitLab CI/CD con enfoque en SEGURIDAD DevSecOps y CLEAN CODE. Analiza el fichero `.gitlab-ci.yml`. Presta ESPECIAL ATENCIÓN a:
+  - Exposición de secrets y credenciales en variables y scripts
+  - Uso de imágenes Docker inseguras o sin verificación
+  - Permisos excesivos en trabajos y runners
+  - Inyección de código en scripts y comandos dinámicos
+  - Configuraciones de seguridad débiles en el pipeline
+  - Artefactos que puedan contener información sensible
+  - Falta de validación en inputs externos
+  - Configuraciones de cache que expongan datos sensibles
+  - Clean code y buenas prácticas en pipelines CI/CD
+
+# Reglas de Clean Code para GitLab CI/CD
+cleanCodeRules: |
+  Además de los aspectos de seguridad, aplica estas reglas de clean code para pipelines:
+
+  ## ORGANIZACIÓN Y ESTRUCTURA:
+  - Usa nombres descriptivos para jobs: build-frontend, test-api, deploy-production
+  - Agrupa jobs relacionados en stages lógicos
+  - Usa extends para reutilizar configuraciones comunes
+  - Separa configuración compleja en archivos include externos
+  - Documenta jobs complejos con comentarios descriptivos
+  - Mantén el .gitlab-ci.yml organizado y legible
+
+  ## REUTILIZACIÓN Y DRY:
+  - Usa templates (.template) para configuraciones repetidas
+  - Implementa jobs base con extends para herencia
+  - Centraliza variables comunes en el nivel global
+  - Usa anchors YAML (&) para reutilizar bloques
+  - Extrae scripts largos a archivos separados
+  - Implementa jobs parametrizables con variables
+
+  ## MANEJO DE VARIABLES:
+  - Usa nombres descriptivos: DATABASE_URL vs DB_URL
+  - Agrupa variables por contexto: CI_, DEPLOY_, TEST_
+  - Usa variables protegidas para datos sensibles
+  - Documenta variables complejas con comentarios
+  - Evita hardcodear valores, usa variables
+  - Implementa valores por defecto apropiados
+
+  ## SCRIPTS Y COMANDOS:
+  - Divide scripts largos en pasos lógicos
+  - Usa set -e para fallar rápido en errores
+  - Implementa logging apropiado en scripts
+  - Usa funciones para lógica reutilizable
+  - Valida inputs antes de usar en comandos
+  - Implementa cleanup apropiado en after_script
+
+# Rutas a ignorar durante el análisis.
+ignorePaths:
+  - .git/
+  - .gitlab/
+  - ci_cache/
+  - pipeline_artifacts/
+
+# Ficheros específicos a buscar y analizar.
+find:
+  - label: ".gitlab-ci.yml"
+    description: "CRÍTICO: Pipeline principal. Busca secrets hardcodeados, imágenes Docker inseguras, y configuraciones de seguridad débiles."
+  - label: "ci/"
+    description: "SEGURIDAD: Scripts de CI. Verifica que no contengan credenciales hardcodeadas o comandos inseguros."
+  - label: "Dockerfile"
+    description: "SEGURIDAD: Imagen Docker. Verifica usuario root, puertos expuestos, secrets en capas."
+  - label: "docker-compose.yml"
+    description: "CONFIGURACIÓN: Orquestación. Verifica redes, volúmenes y variables de entorno seguras."
+  - label: ".dockerignore"
+    description: "PRIVACIDAD: Archivos ignorados. Verifica que excluya archivos sensibles."
+  - label: "requirements.txt"
+    description: "DEPENDENCIAS: Python. Verifica versiones sin vulnerabilidades conocidas."
+  - label: "package.json"
+    description: "DEPENDENCIAS: Node.js. Verifica paquetes npm sin CVEs conocidos."
+  - label: "sonar-project.properties"
+    description: "CALIDAD: Configuración SonarQube. Verifica configuración de análisis de seguridad."
+
+# Símbolos o anotaciones clave a identificar en el código.
+symbols:
+  # === CLEAN CODE Y BUENAS PRÁCTICAS CI/CD ===
+  
+  # Organización y nomenclatura
+  - label: "job[0-9]+:"
+    description: "NOMENCLATURA: Job con número. Usar nombres descriptivos: build-frontend, test-api"
+  - label: "test.*:"
+    description: "NOMENCLATURA: Job genérico 'test'. Especificar tipo: test-unit, test-integration"
+  - label: "deploy.*:"
+    description: "NOMENCLATURA: Job genérico 'deploy'. Especificar entorno: deploy-staging, deploy-prod"
+  
+  # Reutilización y DRY
+  - label: "script:.*\n(\s+-.*\n){10,}"
+    description: "COMPLEJIDAD: Script muy largo. Extraer a archivo separado o dividir en jobs"
+  - label: "image:.*\n[\s\S]*image:"
+    description: "DUPLICACIÓN: Imágenes repetidas. Usar template base o variable global"
+  - label: "before_script:.*\n[\s\S]*before_script:"
+    description: "DUPLICACIÓN: before_script repetido. Usar extends o template"
+  
+  # Variables y configuración
+  - label: "variables:.*\n\s+[A-Z_]+: .*[a-z].*"
+    description: "CONVENCIÓN: Variable sin UPPER_CASE. Usar convención: DATABASE_URL"
+  - label: "\$[a-z_]+"
+    description: "CONVENCIÓN: Variable en minúsculas. Usar UPPER_CASE para variables CI"
+  
+  # Marcadores de deuda técnica
+  - label: "# TODO:"
+    description: "DEUDA TÉCNICA: Configuración temporal que necesita ser completada."
+  - label: "# FIXME:"
+    description: "CRÍTICO: Configuración que funciona pero tiene problemas conocidos."
+  - label: "# HACK:"
+    description: "DEUDA TÉCNICA: Solución temporal no elegante que necesita refactoring."
+  - label: "# XXX:"
+    description: "ATENCIÓN: Configuración problemática que necesita revisión urgente."
+  
+  # === CONFIGURACIÓN GITLAB CI ===
+  
+  - label: "stages:"
+    description: "Define el orden de ejecución de los trabajos."
+  - label: "job_name:"
+    description: "Define un trabajo específico en el pipeline."
+  - label: "image:"
+    description: "SEGURIDAD: Imagen Docker. Verificar que use imágenes oficiales con tags específicos, no 'latest'."
+  - label: "script:"
+    description: "CRÍTICO: Comandos ejecutados. Buscar secrets hardcodeados, inyección de comandos, curl inseguro."
+  - label: "before_script:"
+    description: "SEGURIDAD: Scripts previos. Verificar inicialización segura y no exposición de credenciales."
+  - label: "after_script:"
+    description: "LIMPIEZA: Scripts posteriores. Verificar limpieza de datos sensibles y logs."
+  - label: "artifacts:"
+    description: "PRIVACIDAD: Artefactos. Verificar que no contengan credenciales o datos sensibles."
+  - label: "cache:"
+    description: "SEGURIDAD: Cache. Verificar que no se cacheen archivos con información sensible."
+  - label: "variables:"
+    description: "CRÍTICO: Variables. Buscar secrets hardcodeados, usar variables protegidas para datos sensibles."
+  - label: "rules:"
+    description: "AUTORIZACIÓN: Condiciones de ejecución. Verificar reglas de acceso apropiadas."
+  - label: "only:"
+    description: "CONTROL: Restricciones legacy. Verificar que limite ejecución a ramas apropiadas."
+  - label: "except:"
+    description: "CONTROL: Exclusiones legacy. Verificar que no permita ejecución en contextos inseguros."
+  - label: "when:"
+    description: "CONDICIONES: Ejecución condicional. Verificar lógica de ejecución segura."
+  - label: "allow_failure:"
+    description: "TOLERANCIA: Fallos permitidos. Verificar que trabajos críticos de seguridad no fallen silenciosamente."
+  - label: "parallel:"
+    description: "CONCURRENCIA: Ejecución paralela. Verificar que no cause race conditions de seguridad."
+  - label: "services:"
+    description: "SERVICIOS: Contenedores adicionales. Verificar configuración segura de servicios."
+  - label: "tags:"
+    description: "RUNNERS: Etiquetas de runners. Verificar que use runners apropiados y seguros."
+  - label: "needs:"
+    description: "DEPENDENCIAS: Trabajos prerequisito. Verificar orden de ejecución seguro."
+  - label: "environment:"
+    description: "ENTORNO: Configuración de entorno. Verificar que no exponga información sensible."
+  - label: "extends:"
+    description: "HERENCIA: Configuración heredada. Verificar que templates padre sean seguros."
+  - label: "include:"
+    description: "INCLUSIÓN: Archivos externos. Verificar que archivos incluidos sean seguros y controlados."
+  - label: "$CI_"
+    description: "VARIABLES: Variables CI predefinidas. Verificar uso seguro y no exposición en logs."
+  - label: "curl"
+    description: "CRÍTICO: Peticiones HTTP. Verificar validación SSL (-k es INSEGURO), autenticación segura."
+  - label: "wget"
+    description: "DESCARGA: Archivos remotos. Verificar validación SSL y origen confiable."
+  - label: "ssh"
+    description: "ACCESO: Conexión SSH. Verificar autenticación por clave, no password."
+  - label: "scp"
+    description: "TRANSFERENCIA: Copia segura. Verificar destinos y autenticación."
+  - label: "docker login"
+    description: "CRÍTICO: Autenticación Docker. Verificar que use variables protegidas, no credenciales hardcodeadas."
+  - label: "docker build"
+    description: "BUILD: Construcción imagen. Verificar que no incluya secrets en capas."
+  - label: "docker push"
+    description: "PUBLICACIÓN: Subida imagen. Verificar destino seguro y autenticación."
+  - label: "echo"
+    description: "LOGGING: Salida de comandos. Verificar que no imprima secrets o información sensible."
+  - label: "cat"
+    description: "LECTURA: Archivos. Verificar que no lea archivos sensibles y los imprima."
+  - label: "printenv"
+    description: "CRÍTICO: Variables de entorno. Puede exponer TODOS los secrets en logs."
+  - label: "env"
+    description: "CRÍTICO: Variables de entorno. Puede exponer secrets en logs."
