@@ -47,12 +47,38 @@ Añade el servidor MCP a tu configuración de Cursor.
 
 **Configuración para mcp.json:**
 
+> **⚠️ IMPORTANTE:** Reemplaza `path/to/ruleforge-public` con la ruta ABSOLUTA real donde instalaste el proyecto. En Windows, usa dobles barras invertidas `\\`.
+
 ```json
 {
   "mcpServers": {
     "ruleforge": {
       "command": "node",
-      "args": ["path/to/ruleforge-public/wrapper.js"]
+      "args": ["C:\\ruta\\completa\\a\\ruleforge-public\\wrapper.js"]
+    }
+  }
+}
+```
+
+**Ejemplo real (Windows):**
+```json
+{
+  "mcpServers": {
+    "ruleforge": {
+      "command": "node",
+      "args": ["C:\\Users\\TuUsuario\\Projects\\ruleforge-public\\wrapper.js"]
+    }
+  }
+}
+```
+
+**Ejemplo real (Linux/Mac):**
+```json
+{
+  "mcpServers": {
+    "ruleforge": {
+      "command": "node",
+      "args": ["/home/usuario/proyectos/ruleforge-public/wrapper.js"]
     }
   }
 }
