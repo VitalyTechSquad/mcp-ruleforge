@@ -1,0 +1,258 @@
+---
+description: Reglas de seguridad frontend y clean code para proyectos Angular con análisis XSS, buenas prácticas TypeScript y arquitectura de componentes
+globs: ["**/*.ts", "**/*.html", "**/*.scss", "**/*.css", "**/package.json", "**/angular.json", "**/tsconfig*.json", "**/environment*.ts"]
+alwaysApply: true
+---
+
+# Este es el prompt que se le dará a la IA.
+aiPrompt: |
+  Eres un experto en Angular con enfoque en SEGURIDAD FRONTEND y CLEAN CODE. Analiza la estructura de componentes, servicios, módulos y rutas. Presta ESPECIAL ATENCIÓN a:
+  - Vulnerabilidades XSS (Cross-Site Scripting) en templates y binding
+  - Manejo inseguro de datos del usuario y sanitización
+  - Autenticación y autorización insegura (JWT mal manejados)
+  - Exposición de secrets y API keys en el frontend
+  - Dependencias npm con vulnerabilidades conocidas
+  - CSP (Content Security Policy) y headers de seguridad
+  - Validación y manejo de formularios inseguro
+  - Configuraciones de desarrollo expuestas en producción
+  - Clean code y buenas prácticas de desarrollo Angular/TypeScript
+
+# Reglas de Clean Code y Buenas Prácticas Angular/TypeScript
+cleanCodeRules: |
+  Además de los aspectos de seguridad, aplica estas reglas de clean code específicas para Angular:
+
+  ## NOMENCLATURA Y CONVENCIONES ANGULAR:
+  - Usa kebab-case para selectores: app-user-profile, not appUserProfile
+  - Usa PascalCase para clases: UserService, PaymentComponent
+  - Usa camelCase para propiedades y métodos: userName, calculateTotal()
+  - Usa UPPER_CASE para constantes: API_BASE_URL, MAX_RETRY_ATTEMPTS
+  - Prefijos consistentes: components (app-), services (-service), pipes (-pipe)
+  - Nombres descriptivos: UserListComponent vs ListComponent
+  - Interfaces con prefijo I: IUser, IApiResponse (opcional pero consistente)
+
+  ## COMPONENTES ANGULAR:
+  - Un componente debe tener UNA responsabilidad específica
+  - Máximo 400 líneas por archivo de componente
+  - Usa OnPush change detection cuando sea posible para performance
+  - Implementa OnDestroy para cleanup de subscripciones
+  - Usa @Input() y @Output() con tipos específicos
+  - Evita lógica compleja en templates, muévela al componente
+  - Usa trackBy functions en *ngFor para listas grandes
+
+  ## SERVICIOS Y DEPENDENCIAS:
+  - Servicios deben ser stateless cuando sea posible
+  - Usa providedIn: 'root' para singletons
+  - Implementa interfaces para servicios complejos
+  - Maneja errores apropiadamente en servicios HTTP
+  - Usa RxJS operators para transformar datos
+  - Evita subscripciones anidadas, usa operators como switchMap
+
+  ## ESTRUCTURA Y ORGANIZACIÓN:
+  - Usa 2 espacios para indentación (Angular Style Guide)
+  - Máximo 140 caracteres por línea
+  - Organiza imports: Angular core, third-party, aplicación
+  - Usa barrel exports (index.ts) para módulos
+  - Estructura de carpetas por feature, no por tipo de archivo
+  - Lazy loading para módulos grandes
+
+  ## TEMPLATES Y BINDING:
+  - Usa async pipe para observables en templates
+  - Evita llamadas a funciones en templates (usa getters o pipes)
+  - Usa pipes para transformaciones de datos
+  - Implementa custom pipes para lógica reutilizable
+  - Usa *ngIf con else para casos complejos
+  - Prefiere [class.active] sobre [ngClass] para clases simples
+
+  ## RXJS Y OBSERVABLES:
+  - Usa operators funcionales, evita subscribe anidados
+  - Implementa error handling con catchError
+  - Usa takeUntil pattern para unsubscribe automático
+  - Prefiere cold observables sobre hot cuando sea posible
+  - Usa shareReplay para cachear resultados HTTP
+  - Combina observables con combineLatest, merge, etc.
+
+  ## TESTING ANGULAR:
+  - Usa TestBed para configurar tests de componentes
+  - Mock servicios y dependencias externas
+  - Usa Page Object Model para tests E2E
+  - Tests unitarios para lógica de negocio
+  - Tests de integración para flujos completos
+  - Usa async/fakeAsync para operaciones asíncronas
+
+# Rutas a ignorar durante el análisis.
+ignorePaths:
+  - node_modules/
+  - dist/
+  - .angular/
+  - coverage/
+  - "*.log"
+  - .nx/
+  - e2e/results/
+  - cypress/screenshots/
+  - cypress/videos/
+
+# Ficheros específicos a buscar y analizar.
+find:
+  - label: "package.json"
+    description: "CRÍTICO: Dependencias npm. Busca paquetes con CVEs conocidos usando 'npm audit'."
+  - label: "package-lock.json"
+    description: "SEGURIDAD: Versiones exactas. Verifica que no haya versiones vulnerables bloqueadas."
+  - label: "angular.json"
+    description: "CONFIGURACIÓN: Revisa CSP, budgets, y que configuraciones de dev no vayan a prod."
+  - label: "app.routes.ts"
+    description: "AUTORIZACIÓN: Examina rutas y verifica que TODAS las rutas sensibles tengan guards."
+  - label: "auth.guard.ts"
+    description: "CRÍTICO: Guards de autenticación. Verifica implementación segura y manejo de tokens."
+  - label: "tsconfig.json"
+    description: "SEGURIDAD: Configuración TypeScript. Verifica strict mode y noImplicitAny activados."
+  - label: "environment.ts"
+    description: "SECRETOS: Variables de entorno. Busca API keys, URLs y configuraciones expuestas."
+  - label: "environment.prod.ts"
+    description: "CRÍTICO: Configuración producción. Verifica que no exponga endpoints de debug."
+  - label: "main.ts"
+    description: "CONFIGURACIÓN: Punto de entrada. Verifica configuraciones de seguridad globales."
+  - label: "index.html"
+    description: "SEGURIDAD: HTML base. Verifica meta tags de seguridad (CSP, X-Frame-Options)."
+  - label: "karma.conf.js"
+    description: "CONFIGURACIÓN: Pruebas. Verifica que no ejecute código malicioso."
+  - label: "protractor.conf.js"
+    description: "SEGURIDAD: E2E legacy. Verifica configuraciones de pruebas."
+  - label: "jest.config.js"
+    description: "CONFIGURACIÓN: Jest. Verifica configuración de pruebas segura."
+  - label: "cypress.config.ts"
+    description: "SEGURIDAD: Cypress E2E. Verifica que no exponga credenciales en tests."
+  - label: ".eslintrc.json"
+    description: "CALIDAD: ESLint. Verifica reglas de seguridad activadas."
+  - label: "proxy.conf.json"
+    description: "CRÍTICO: Configuración proxy. Verifica que no exponga endpoints internos."
+  - label: "web.config"
+    description: "SEGURIDAD: IIS config. Verifica headers de seguridad y configuración HTTPS."
+
+# Símbolos o anotaciones clave a identificar en el código.
+symbols:
+  # === CLEAN CODE Y BUENAS PRÁCTICAS ANGULAR ===
+  
+  # Nomenclatura y convenciones
+  - label: "selector: '[a-z]+[A-Z]'"
+    description: "CONVENCIÓN: Selector camelCase. Usar kebab-case: 'app-user-profile'"
+  - label: "class [a-z].*Component"
+    description: "CONVENCIÓN: Componente con minúscula inicial. Usar PascalCase: UserComponent"
+  - label: "\\w{1,2}Service"
+    description: "NOMENCLATURA: Nombre de servicio muy corto. Usar nombres descriptivos: UserDataService"
+  
+  # Componentes y arquitectura
+  - label: "subscribe\\(.*subscribe"
+    description: "RXJS: Subscripciones anidadas. Usar operators como switchMap, mergeMap"
+  - label: "ngOnDestroy.*subscribe"
+    description: "MEMORY LEAK: Falta unsubscribe. Implementar takeUntil pattern o async pipe"
+  - label: "\\*ngFor.*function"
+    description: "PERFORMANCE: Función en *ngFor. Usar trackBy function para performance"
+  - label: "\\{\\{.*\\(\\).*\\}\\}"
+    description: "PERFORMANCE: Llamada a función en template. Usar pipe o getter"
+  
+  # Estructura y organización
+  - label: "^\\t"
+    description: "CONVENCIÓN: Uso de tabs. Angular Style Guide requiere 2 espacios"
+  - label: ".{141,}"
+    description: "CONVENCIÓN: Línea muy larga (>140 chars). Dividir según Angular Style Guide"
+  - label: "import.*\\.\\./\\.\\./\\.\\./"
+    description: "ORGANIZACIÓN: Import con muchos '../'. Usar barrel exports o rutas absolutas"
+  
+  # Templates y binding
+  - label: "\\[ngClass\\].*\\{.*\\}"
+    description: "SIMPLICIDAD: ngClass complejo. Para casos simples usar [class.active]"
+  - label: "\\*ngIf.*\\|\\|.*\\*ngIf"
+    description: "TEMPLATE: Lógica compleja en template. Mover al componente"
+  
+  # Marcadores de deuda técnica
+  - label: "TODO:"
+    description: "DEUDA TÉCNICA: Código temporal que necesita ser completado o mejorado."
+  - label: "FIXME:"
+    description: "CRÍTICO: Código que funciona pero tiene problemas conocidos que deben arreglarse."
+  - label: "HACK:"
+    description: "DEUDA TÉCNICA: Solución temporal no elegante que necesita refactoring."
+  - label: "XXX:"
+    description: "ATENCIÓN: Código problemático o peligroso que necesita revisión urgente."
+  - label: "DEPRECATED:"
+    description: "OBSOLETO: Código que será removido en futuras versiones."
+  
+  # === COMPONENTES Y SERVICIOS ANGULAR ===
+  
+  - label: "@Component"
+    description: "Clases que representan componentes de la interfaz de usuario."
+  - label: "@Injectable"
+    description: "Clases de servicio que se pueden inyectar en componentes."
+  - label: "@NgModule"
+    description: "Clases que agrupan componentes, directivas, pipes y servicios."
+  - label: "@Directive"
+    description: "Directivas personalizadas para manipulación del DOM."
+  - label: "@Pipe"
+    description: "Pipes para transformar datos en las plantillas."
+  - label: "@Input"
+    description: "SEGURIDAD: Propiedades de entrada. Verifica validación de datos externos."
+  - label: "@Output"
+    description: "Eventos que un componente puede emitir a su padre."
+  - label: "@ViewChild"
+    description: "Referencias a elementos del DOM o componentes hijos."
+  - label: "@HostListener"
+    description: "SEGURIDAD: Escuchadores de eventos. Verifica validación de eventos."
+  - label: "CanActivate"
+    description: "CRÍTICO: Guards de ruta. Verifica implementación correcta de autorización."
+  - label: "CanDeactivate"
+    description: "Interfaz para guards que controlan la salida de rutas."
+  - label: "resolve"
+    description: "SEGURIDAD: Resolvers. Verifica manejo seguro de datos pre-carga."
+  - label: "HttpInterceptor"
+    description: "CRÍTICO: Interceptores HTTP. Verifica manejo seguro de headers y tokens."
+  - label: "OnInit"
+    description: "Interfaz del ciclo de vida de componentes."
+  - label: "OnDestroy"
+    description: "MEMORIA: Limpieza al destruir componentes. Evita memory leaks."
+  - label: "async/await"
+    description: "Patrones de programación asíncrona en servicios."
+  - label: "Observable"
+    description: "Streams reactivos de RxJS para manejo de datos asíncronos."
+  - label: "BehaviorSubject"
+    description: "ESTADO: Subjects para compartir estado. Verifica no exposición de datos sensibles."
+  - label: "FormGroup"
+    description: "SEGURIDAD: Formularios reactivos. Verifica validaciones de entrada."
+  - label: "FormBuilder"
+    description: "Servicio para construir formularios reactivos de forma simplificada."
+  - label: "Validators"
+    description: "CRÍTICO: Validadores. Verifica validaciones suficientes y sanitización."
+  - label: "innerHTML"
+    description: "CRÍTICO: XSS RISK. Puede ejecutar JavaScript malicioso. Usar [textContent]."
+  - label: "outerHTML"
+    description: "CRÍTICO: XSS RISK. Puede ejecutar JavaScript malicioso. Evitar su uso."
+  - label: "bypassSecurityTrust"
+    description: "CRÍTICO: Bypass de seguridad Angular. ALTO RIESGO, revisar necesidad."
+  - label: "safeHtml"
+    description: "SEGURIDAD: HTML seguro. Verifica que realmente esté sanitizado."
+  - label: "DomSanitizer"
+    description: "SANITIZACIÓN: Verifica uso correcto para prevenir XSS."
+  - label: "eval("
+    description: "CRÍTICO: Ejecución de código dinámico. PROHIBIDO en aplicaciones seguras."
+  - label: "Function("
+    description: "CRÍTICO: Constructor Function. Equivale a eval(), evitar uso."
+  - label: "localStorage"
+    description: "PRIVACIDAD: Almacenamiento local. NO almacenar tokens ni datos sensibles."
+  - label: "sessionStorage"
+    description: "PRIVACIDAD: Almacenamiento sesión. Verificar que no contenga datos sensibles."
+  - label: "document.cookie"
+    description: "COOKIES: Manejo directo. Preferir servicios Angular para cookies seguras."
+  - label: "atob("
+    description: "DÉBIL: Decodificación Base64. NO es cifrado, no usar para datos sensibles."
+  - label: "btoa("
+    description: "DÉBIL: Codificación Base64. NO es cifrado, no usar para datos sensibles."
+  - label: "crypto.subtle"
+    description: "CIFRADO: Web Crypto API. Verifica implementación correcta de cifrado."
+  - label: "Math.random"
+    description: "DÉBIL: Generador pseudo-aleatorio. NO usar para tokens o IDs seguros."
+  - label: "window.open"
+    description: "SEGURIDAD: Ventanas emergentes. Verificar validación de URLs."
+  - label: "location.href"
+    description: "REDIRECCIÓN: Cambio de URL. Verificar validación contra Open Redirect."
+  - label: "postMessage"
+    description: "CRÍTICO: Comunicación cross-origin. Verificar validación de origen."
+  - label: "addEventListener"
+    description: "EVENTOS: Escuchadores. Verificar validación de eventos y origen."

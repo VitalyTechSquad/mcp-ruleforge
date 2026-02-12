@@ -2,13 +2,13 @@
   "name": "ruleforge-mcp",
   "version": "1.1.0",
   "description": "MCP Server para generación automática de reglas Cursor con análisis inteligente de proyectos",
-  "homepage": "https://github.com/tuusuario/ruleforge-mcp",
+  "homepage": "https://github.com/VitalyTechSquad/mcp-ruleforge",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tuusuario/ruleforge-mcp"
+    "url": "https://github.com/VitalyTechSquad/mcp-ruleforge"
   },
   "bugs": {
-    "url": "https://github.com/tuusuario/ruleforge-mcp/issues"
+    "url": "https://github.com/VitalyTechSquad/mcp-ruleforge/issues"
   },
   "license": "MIT",
   "author": {

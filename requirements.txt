@@ -1,0 +1,20 @@
+# RuleForge MCP Server - Dependencias
+# =====================================
+# 
+# Servidor MCP para generación automática de reglas Cursor
+# 
+# Instalación:
+#   pip install -r requirements.txt
+#
+# O para desarrollo:
+#   pip install -e .
+
+# Dependencia principal del MCP Server
+mcp>=0.9.0
+
+# Dependencias opcionales para desarrollo
+# (descomentar si se desea trabajar en desarrollo)
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
+# black>=23.0.0
+# mypy>=1.0.0
