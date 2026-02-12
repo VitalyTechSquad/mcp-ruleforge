@@ -1,0 +1,47 @@
+{
+  "name": "ruleforge-mcp",
+  "version": "1.1.0",
+  "description": "MCP Server para generación automática de reglas Cursor con análisis inteligente de proyectos",
+  "homepage": "https://github.com/tuusuario/ruleforge-mcp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tuusuario/ruleforge-mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/tuusuario/ruleforge-mcp/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Luis Miguel Martín",
+    "email": "lm.martin@preving.com"
+  },
+  "main": "wrapper.js",
+  "bin": {
+    "ruleforge-mcp": "./wrapper.js"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node wrapper.js",
+    "test": "pytest test_mcp.py",
+    "lint": "black . --check",
+    "format": "black ."
+  },
+  "keywords": [
+    "mcp",
+    "cursor",
+    "rules",
+    "analysis",
+    "code-quality",
+    "security",
+    "spring-boot",
+    "angular",
+    "python",
+    "vue",
+    "ai",
+    "ide"
+  ],
+  "engines": {
+    "node": ">=14.0.0",
+    "python": ">=3.8"
+  }
+}

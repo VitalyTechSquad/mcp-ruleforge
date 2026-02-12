@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ruleforge-mcp"
+version = "1.1.0"
+description = "MCP Server para generación automática de reglas Cursor con análisis inteligente de proyectos"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Luis Miguel Martín", email = "lm.martin@preving.com"}
+]
+keywords = [
+    "mcp",
+    "cursor",
+    "rules",
+    "analysis",
+    "code-quality",
+    "security",
+    "spring-boot",
+    "angular",
+    "python",
+    "vue"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+dependencies = [
+    "mcp>=0.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+ruleforge-mcp = "server:main"
+
+[project.urls]
+Homepage = "https://github.com/tuusuario/ruleforge-mcp"
+Documentation = "https://github.com/tuusuario/ruleforge-mcp#readme"
+Repository = "https://github.com/tuusuario/ruleforge-mcp"
+Issues = "https://github.com/tuusuario/ruleforge-mcp/issues"
+
+[tool.setuptools]
+py-modules = ["server", "mcp_tools", "__main__", "__init__"]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["core*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
